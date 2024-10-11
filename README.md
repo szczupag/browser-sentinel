@@ -8,7 +8,7 @@ Shield is an AI-powered Chrome extension that alerts you to online threats, such
 
 ### Prerequisites
 
-- Node.js (v20.12.1 or later)
+- Node.js (v20.12.2 or later)
 - npm (v10.5.0 or later)
 - Chrome (v128.0.0 or later)
 
