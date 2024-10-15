@@ -6,14 +6,14 @@ const initialPrompt =
 
 async function initializeAIAssistant() {
   try {
-    const capabilities = await window.ai.languageModel.capabilities()
+    const capabilities = await ai.languageModel.capabilities()
     if (capabilities.available === 'no') {
       console.log('AI assistant is not available on this device')
       return
     }
 
     console.log('Creating AI assistant session...')
-    aiSession = await window.ai.languageModel.create({ systemPrompt: initialPrompt })
+    aiSession = await ai.languageModel.create({ systemPrompt: initialPrompt })
     console.log('AI assistant session created successfully')
   } catch (error) {
     console.error('Error initializing AI assistant:', error)
