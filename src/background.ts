@@ -6,14 +6,14 @@ const initialPrompt =
 
 async function initializeAIAssistant() {
   try {
-    const capabilities = await ai.assistant.capabilities()
+    const capabilities = await window.ai.languageModel.capabilities()
     if (capabilities.available === 'no') {
       console.log('AI assistant is not available on this device')
       return
     }
 
     console.log('Creating AI assistant session...')
-    aiSession = await ai.assistant.create({ systemPrompt: initialPrompt })
+    aiSession = await window.ai.languageModel.create({ systemPrompt: initialPrompt })
     console.log('AI assistant session created successfully')
   } catch (error) {
     console.error('Error initializing AI assistant:', error)
@@ -52,7 +52,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'analyzeText' && tab.id) {
+  if (info.menuItemId === 'analyzeText' && tab?.id) {
     chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' })
   }
 })
