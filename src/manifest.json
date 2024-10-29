@@ -8,12 +8,16 @@
   },
   "permissions": ["storage", "contextMenus", "activeTab"],
   "background": {
-    "service_worker": "assets/background.js"
+    "service_worker": "src/background.ts"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["assets/content.js"]
+      "js": ["src/content-script.ts"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-phishing-analysis.ts"]
     }
   ]
 }
