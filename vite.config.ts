@@ -1,27 +1,28 @@
 /// <reference types="vitest" />
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import webExtension, { readJsonFile } from 'vite-plugin-web-extension';
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+function generateManifest() {
+  const manifest = readJsonFile('./src/manifest.json');
+  const pkg = readJsonFile('./package.json');
+  return {
+    name: pkg.name,
+    description: pkg.description,
+    version: pkg.version,
+    ...manifest,
+  };
+}
 
 export default defineConfig({
-  plugins: [vue()],
-  build: {
-    rollupOptions: {
-      input: {
-        popup: resolve(__dirname, 'src/popup/index.html'),
-        background: resolve(__dirname, 'src/background.ts'),
-        content: resolve(__dirname, 'src/content-script.ts'),
-      },
-      output: {
-        entryFileNames: 'assets/[name].js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name].[ext]',
-      },
-    },
-  },
+  plugins: [
+    vue(),
+    webExtension({
+      manifest: generateManifest,
+      disableAutoLaunch: true,
+      watchFilePaths: ['package.json', 'src/manifest.json'],
+    }),
+  ],
   test: {
     environment: 'happy-dom',
     globals: true,
