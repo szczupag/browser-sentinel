@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <style>
+        .st1{fill:#e31837}
+    </style>
+    <path fill="none" d="M0 0h24v24H0z" id="_x32_4_X_24_BOX"/>
+    <g id="ICON_OUTLINES">
+        <path class="st1" d="M22 19H2V5h20v14zM3 18h18V6H3v12z"/>
+        <path class="st1" d="M5 14h15v1H5zm15-2h-6V9h6v3zm-5-1h4v-1h-4v1z"/>
+    </g>
+</svg>
