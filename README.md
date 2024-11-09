@@ -1,10 +1,41 @@
-# 🛡️ Shield
+# 🛡️ BrowserSentinel
 
-## Overview
+## 🎯 Overview
 
-Shield is an AI-powered Chrome extension that alerts you to online threats, such as phishing and harmful content. It utilizes Chrome's built-in AI APIs to enhance your browsing safety while ensuring your privacy through local analysis.
+BrowserSentinel is an AI-powered Chrome extension that safeguards users from online threats, with a primary focus on phishing detection. It leverages Chrome's built-in Gemini Nano model through the Prompt API to analyze web content locally, ensuring both security and privacy.
 
-## Development
+## ⚡ Key Features
+
+- Real-time phishing detection using domain analysis and AI content verification
+- Local processing using Chrome's built-in AI (no server calls needed)
+- Privacy-focused: all analysis happens on your device
+
+## 🔬 Technical Approach & Findings
+
+
+### Webpage phishing Detector:
+Our phishing detection combines traditional security measures with AI analysis:
+
+1. **Domain Analysis**:
+   - Implemented Levenshtein distance comparison for typosquatting detection
+   - Uses a curated list of legitimate domains as baseline
+   - Handles edge cases like subdomains and country-specific TLDs
+
+2. **AI Content Analysis**:
+   - Utilizes Chrome's Gemini Nano model for content verification
+   - Local processing ensures privacy
+
+### 💡 Technical Insights
+
+During development, we discovered some interesting limitations and solutions:
+
+- Pure LLM-based domain analysis proved unreliable due to how tokenization works in language models
+- Hybrid approach (traditional algorithms + AI) provided better results than pure AI solution
+- Local model shows occasional inconsistencies but benefits from no latency and privacy protection
+
+These limitations actually led to a more robust solution combining traditional security measures with AI capabilities.
+
+## 🛠️ Development
 
 ### Prerequisites
 
@@ -15,32 +46,40 @@ Shield is an AI-powered Chrome extension that alerts you to online threats, such
 ### Installation
 
 1. Clone the repository:
+   ```bash
+   git clone https://github.com/szczupag/browser-sentinel.git
    ```
-   git clone https://github.com/szczupag/ai-shield-chrome-extension.git
-   ```
+
 2. Install dependencies:
-   ```
-   cd ai-shield-chrome-extension
+   ```bash
+   cd browser-sentinel
    npm install
    ```
+
 3. Build the extension:
-   ```
+   ```bash
    npm run build:extension
    ```
-4. Load the extension in Chrome:
-   - Open Chrome and navigate to `chrome://extensions/`.
-   - Enable "Developer mode" in the top right corner.
-   - Click "Load unpacked."
-   - Select the `dist` folder from the project directory.
 
-### Building the extension with hot reloading
+4. Load in Chrome:
+   - Navigate to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `dist` folder
 
-```
-npm run dev
+### Development Commands
+
+```bash
+npm run dev        # Build with hot reloading
+npm run test       # Run tests
 ```
 
-### Running tests
+## 🌟 About
 
-```
-npm run test
-```
+Created for the Google Chrome Built-in AI Challenge, BrowserSentinel demonstrates the potential of Chrome's built-in AI capabilities to enhance web security while maintaining user privacy.
+
+Most online phishing detection services require sending URLs and webpage content to remote servers for analysis, potentially exposing sensitive data. By leveraging Chrome's built-in AI, BrowserSentinel performs all checks locally on your device, ensuring that potentially sensitive information never leaves your browser.
+
+## 📜 License
+
+[TBD](LICENSE)
