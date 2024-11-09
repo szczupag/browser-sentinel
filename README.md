@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-BrowserSentinel is an AI-powered Chrome extension that safeguards users from online threats, with a primary focus on phishing detection. It leverages Chrome's built-in Gemini Nano model through the Prompt API to analyze web content locally, ensuring both security and privacy.
+BrowserSentinel is an AI-powered Chrome extension that safeguards users from online threats, with a primary focus on phishing detection. Created for the Google Chrome Built-in AI Challenge, it leverages Chrome's built-in Gemini Nano model to analyze web content locally, ensuring both security and privacy. Unlike traditional phishing detection services that require sending URLs and webpage content to remote servers, BrowserSentinel performs all checks on your device, ensuring sensitive information never leaves your browser.
 
 ## ⚡ Key Features
 
@@ -11,7 +11,8 @@ BrowserSentinel is an AI-powered Chrome extension that safeguards users from onl
 - Privacy-focused: all analysis happens on your device
 
 ## 🔬 Technical Approach & Findings
-
+<details>
+<summary>Click to expand technical details</summary>
 
 ### Webpage phishing Detector:
 Our phishing detection combines traditional security measures with AI analysis:
@@ -34,6 +35,8 @@ During development, we discovered some interesting limitations and solutions:
 - Local model shows occasional inconsistencies but benefits from no latency and privacy protection
 
 These limitations actually led to a more robust solution combining traditional security measures with AI capabilities.
+
+</details>
 
 ## 🔧 Testing Tools
 
@@ -83,12 +86,6 @@ This controlled environment lets us test detection capabilities without accessin
 npm run dev        # Build with hot reloading
 npm run test       # Run tests
 ```
-
-## 🌟 About
-
-Created for the Google Chrome Built-in AI Challenge, BrowserSentinel demonstrates the potential of Chrome's built-in AI capabilities to enhance web security while maintaining user privacy.
-
-Most online phishing detection services require sending URLs and webpage content to remote servers for analysis, potentially exposing sensitive data. By leveraging Chrome's built-in AI, BrowserSentinel performs all checks locally on your device, ensuring that potentially sensitive information never leaves your browser.
 
 ## 📜 License
 
