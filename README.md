@@ -35,6 +35,16 @@ During development, we discovered some interesting limitations and solutions:
 
 These limitations actually led to a more robust solution combining traditional security measures with AI capabilities.
 
+## 🔧 Testing Tools
+
+In `/phishing-mocks-websites` you'll find our testing environment that helps validate BrowserSentinel's effectiveness. It safely simulates phishing attempts by:
+- Creating local mock websites that mimic common phishing patterns
+- Setting up HTTPS with self-signed certificates
+- Managing system hosts file for domain spoofing
+- Handling domain-specific assets and content
+
+This controlled environment lets us test detection capabilities without accessing actual malicious sites. Perfect for development and demonstrations.
+
 ## 🛠️ Development
 
 ### Prerequisites
