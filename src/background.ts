@@ -1,3 +1,6 @@
+// background.js
+import '@inboxsdk/core/background.js';
+
 console.log('Hello from the background script')
 let aiSession: any = null
 const initialPrompt = `You are analyzing text content for potential threats such as phishing, scams, or other risky content. There are two types of input:

@@ -14,6 +14,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@inboxsdk/core": "^2.1.65",
     "@types/dom-chromium-ai": "^0.0.2",
     "pinia": "^2.2.4",
     "vue": "^3.5.12"
@@ -35,6 +36,7 @@
     "prettier": "^3.3.3",
     "typescript": "^5.5.3",
     "vite": "^5.4.8",
+    "vite-plugin-static-copy": "^2.1.0",
     "vite-plugin-web-extension": "^4.2.0",
     "vitest": "^2.1.2",
     "vue-tsc": "^2.1.6"
