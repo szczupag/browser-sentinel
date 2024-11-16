@@ -1,5 +1,6 @@
 // background.js
 import '@inboxsdk/core/background.js';
+declare const ai: typeof window.ai;
 
 console.log('Hello from the background script')
 let aiSession: any = null
@@ -192,12 +193,23 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 })
 
 // Listen for messages from the content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'analyzeText') {
-    analyzeWithAI(message.text, 'text').then(sendResponse)
-    return true
-  } else if (message.action === 'analyzeHTML') {
-    analyzeWithAI(message.html, 'html').then(sendResponse)
-    return true
-  }
-})
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+  (async () => {
+    switch (message.action) { 
+      case 'analyzeText':
+        const textAnalysis = await analyzeWithAI(message.text, 'text');
+        sendResponse(textAnalysis);
+        break;
+      case 'analyzeHTML':
+        const htmlAnalysis = await analyzeWithAI(message.text, 'html');
+        sendResponse(htmlAnalysis);
+        break;  
+    }
+  })();
+  
+  return true;
+});
+
+
+
+
