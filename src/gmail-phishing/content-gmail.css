@@ -1,0 +1,60 @@
+.ai-sentinel-highlight {
+  cursor: help;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
+}
+
+.ai-sentinel-highlight[data-level="HIGH"] {
+  background: rgba(220, 38, 38, 0.1);
+  border-bottom: 2px solid rgba(220, 38, 38, 0.3);
+}
+
+.ai-sentinel-highlight[data-level="MEDIUM"] {
+  background: rgba(234, 88, 12, 0.1);
+  border-bottom: 2px solid rgba(234, 88, 12, 0.3);
+}
+
+.ai-sentinel-highlight[data-level="LOW"] {
+  background: rgba(22, 163, 74, 0.1);
+  border-bottom: 2px solid rgba(22, 163, 74, 0.3);
+}
+
+.ai-sentinel-highlight[data-level="HIGH"]:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.ai-sentinel-highlight[data-level="MEDIUM"]:hover {
+  background: rgba(234, 88, 12, 0.15);
+}
+
+.ai-sentinel-highlight[data-level="LOW"]:hover {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+#ai-sentinel-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: #18181b;
+  color: white;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 300px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.1s ease;
+}
+
+.tooltip-level {
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.tooltip-reason {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+}

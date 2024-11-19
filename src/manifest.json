@@ -6,18 +6,28 @@
   "action": {
     "default_popup": "src/popup/index.html"
   },
-  "permissions": ["storage", "contextMenus", "activeTab"],
+  "permissions": ["storage", "contextMenus", "activeTab", "scripting"],
   "background": {
     "service_worker": "src/background.ts"
   },
+  "host_permissions": [
+    "https://mail.google.com/"
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["src/content-script.ts"]
     },
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/content-phishing-analysis.ts"]
+      "matches": ["https://mail.google.com/*"],
+      "js": ["src/gmail-phishing/content-gmail.ts"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["*.map"],
+      "matches": ["https://mail.google.com/*"]
     }
   ]
 }
