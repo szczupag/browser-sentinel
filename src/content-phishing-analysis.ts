@@ -6,6 +6,59 @@ import { createApp } from 'vue'
 import PhishingAlert from './components/PhishingAlert.vue'
 import styles from './content-phishing-analysis.css?inline'
 
+const initialPrompt = `
+  You are a security expert analyzing websites for potential phishing indicators. Your task is to analyze provided website content and combine it with domain analysis results to detect phishing attempts.
+
+  IMPORTANT:
+  - Base your analysis ONLY on the provided information
+  - Do not make assumptions about information that is not provided
+  - If information is insufficient, reflect this in your confidence score
+  - Never invent or assume details that are not explicitly given
+
+  TASK DETAILS:
+  - Analyze the provided website content for suspicious patterns
+  - Consider the domain analysis results that are provided
+  - Generate a structured JSON response with security recommendations
+
+  ANALYSIS GUIDELINES:
+  1. Look for mismatched branding or inconsistent terminology
+  2. Check for urgency or pressure tactics in content
+  3. Identify suspicious requests for sensitive information
+  4. Consider security indicators (HTTPS, certificates)
+  5. Combine content analysis with domain similarity findings
+
+  RESPONSE REQUIREMENTS:
+  1. Maximum 4 violations
+  2. No duplicate rule types
+  3. Prioritize domain-related violations
+  4. Brief explanations (max 20 words)
+  5. No technical terms
+  6. Must be valid parseable JSON
+  7. Use only these rule names: "Deceptive Domain", "Content Mismatch", "Missing Security", "Suspicious Branding"
+
+  EXAMPLE:
+  Input: Domain similar to "paypal.com", poor grammar, requests for banking info
+  Output: {
+    "violations": [
+      {
+        "rule": "Deceptive Domain",
+        "severity": "HIGH",
+        "explanation": "Website mimics PayPal's address with slight spelling variation"
+      },
+      {
+        "rule": "Content Mismatch",
+        "severity": "HIGH",
+        "explanation": "Poor grammar and unusual payment request patterns"
+      }
+    ],
+    "overallRiskScore": "HIGH",
+    "overallConfidence": "HIGH",
+    "isSafe": false,
+    "recommendation": "Stop immediately. This is a fake PayPal site trying to steal your information"
+  }
+
+  Your response must be valid JSON that can be parsed by JSON.parse(). No additional text or formatting allowed.`
+
 let vueApp = null
 type Risk = 'HIGH' | 'MEDIUM' | 'LOW'
 type PhishingAnalysis = {
@@ -140,56 +193,22 @@ function showPhishingAlert(data: any) {
     const session = await window.ai.languageModel.create({
       topK: 1,
       temperature: 0.1,
-      systemPrompt:
-        'You are a security expert analyzing a website for potential phishing indicators. Follow the instructions carefully.',
+      systemPrompt: initialPrompt,
     })
 
     const promptText = `
-[Input]
-Domain: "${domain}"
-Is using HTTPS: ${location.protocol === 'https:' ? 'Yes' : 'No'}
-Levenshtein Distance: ${analysisResult.distance}
-Similarity: ${analysisResult.similarity}
-Legitimate Domain: "${analysisResult.legitimateDomain}"
+      [Website Analysis Input]
+      Domain Analysis Results:
+      - Analyzed Domain: "${domain}"
+      - HTTPS Status: ${location.protocol === 'https:' ? 'Yes' : 'No'}
+      - Levenshtein Distance from legitimate domain: ${analysisResult.distance}
+      - Similarity Score: ${analysisResult.similarity}
+      - Similar to Legitimate Domain: "${analysisResult.legitimateDomain}"
 
-Below is the actual text content found on the webpage (without any HTML tags):
-----
-${document.body.innerText.substring(0, 2000)}
-----
-
-You are a JSON generator that helps create valid JSON for security analysis. Your task is to generate a phishing analysis in valid JSON format.
-
-Output requirements:
-1. Maximum 4 violations
-2. No duplicate rule types
-3. Prioritize domain-related violations
-4. Brief explanations (max 20 words)
-5. No technical terms
-6. Must be valid parseable JSON
-7. Use only these rule names: "Deceptive Domain", "Content Mismatch", "Missing Security", "Suspicious Branding"
-
-Return your response in this exact JSON format:
-
-{
-  "violations": [
-    {
-      "rule": "Deceptive Domain",
-      "severity": "HIGH",
-      "explanation": "Website address is almost identical to real bank's address"
-    },
-    {
-      "rule": "Content Mismatch",
-      "severity": "HIGH",
-      "explanation": "Website looks different from real bank's site"
-    }
-  ],
-  "overallRiskScore": "HIGH",
-  "overallConfidence": "HIGH",
-  "isSafe": false,
-  "recommendation": "Don't enter any information, this is likely a fake bank website"
-}
-
-Remember: The output must be valid JSON that can be parsed by JSON.parse(). No additional text or formatting.`
+      Website Content:
+      ----
+      ${document.body.innerText.substring(0, 2000)}
+      ----`
 
     const promptResult = await session.prompt(promptText)
     let phishingAnalysis: PhishingAnalysis | null = null
