@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import type { ScanResult } from './types';
 import GmailPhishingScannerLoading from './GmailPhishingScannerLoading.vue';
 import GmailPhishingScannerWarning from './GmailPhishingScannerWarning.vue';
 import GmailPhishingScannerThreats from './GmailPhishingScannerThreats.vue';
 import GmailPhishingScannerError from './GmailPhishingScannerError.vue';
+import GmailPhishingScannerSafe from './GmailPhishingScannerSafe.vue';
 
 const isLoading = ref(true);
 const scanResult = ref<ScanResult | null>(null);
@@ -23,6 +24,21 @@ const setError = (errorMessage: string) => {
   isLoading.value = false;
 };
 
+const isHighRisk = computed(() => {
+  if (!scanResult.value) return false;
+  
+  const highThreats = scanResult.value.contentAnalysis.suspiciousContent.filter(
+    content => content.severity === 'HIGH'
+  ).length;
+  
+  const totalThreats = scanResult.value.contentAnalysis.suspiciousContent.length;
+  
+  // Consider high risk if:
+  // 1. There are any HIGH severity threats, or
+  // 2. More than 3 MEDIUM threats
+  return highThreats > 0 || (totalThreats > 3);
+});
+
 // Expose the method to the parent
 defineExpose({
   updateResults,
@@ -40,12 +56,13 @@ defineExpose({
     </template>
     <template v-else-if="scanResult">
       <div class="ai-scanner-results">
-        <GmailPhishingScannerWarning 
-          v-if="scanResult.contentAnalysis.analysis.risk === 'HIGH' || scanResult.contentAnalysis.suspiciousContent.filter(e => e.severity === 'HIGH').length > 0" 
-        />
-        <GmailPhishingScannerThreats 
-          :result="scanResult" 
-        />
+        <template v-if="isHighRisk">
+          <GmailPhishingScannerWarning />
+          <GmailPhishingScannerThreats :result="scanResult" />
+        </template>
+        <template v-else>
+          <GmailPhishingScannerSafe :result="scanResult" />
+        </template>
       </div>
     </template>
   </div>

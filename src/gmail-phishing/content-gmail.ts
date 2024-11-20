@@ -181,7 +181,13 @@ function analyzeUrl(displayText: string, href: string): URLAnalysis {
 }
 
 // Main Analysis Function
-async function analyzeEmail(metadata: EmailMetadata, emailText: string): Promise<ScanResult> {
+async function analyzeEmail(messageID: string, metadata: EmailMetadata, emailText: string): Promise<ScanResult> {
+  const cacheKey = `gmail-scanner-${messageID}`;
+  const cachedResult = await chrome.storage.local.get(cacheKey);
+  if (cachedResult[cacheKey]) {
+    console.log("Using cached result for", messageID, cachedResult[cacheKey]);
+    //return cachedResult[cacheKey] as ScanResult;
+  }
   // Initialize Safe Browsing client
   const safeBrowsing = new SafeBrowsingClient(
     'AIzaSyCRQYkdubK4cut-ypF9Tx6RjIFQtWYHuzk',
@@ -207,8 +213,9 @@ async function analyzeEmail(metadata: EmailMetadata, emailText: string): Promise
 
   // Create prompt for LLM with technical analysis results
   const promptText = `
-You are a security professional. Your task is to analyse emails and judge if the email is a possible phishing attempt. Each section of the prompt is separated by ---
-Under no circumstances you should analyse any email's addresses found. You can however ask the user to check if it's a trusted sender (in case the final decision depends if the sender is legitimate).
+You are a security professional specialized in identifying sophisticated phishing attempts. Your task is to analyze emails and identify ONLY genuine security threats. Each section of the prompt is separated by ---
+
+Under no circumstances should you analyze any email addresses found. You can however ask the user to check if it's a trusted sender (in case the final decision depends if the sender is legitimate).
 
 METADATA:
 ---
@@ -216,29 +223,43 @@ Subject: "${metadata.subject}"
 ---
 ----
 ANALYSIS GUIDELINES:
-Important signs of phishing include:
-- Urgency in language
-- Threats of consequences
-- Requests for sensitive data
-- Unusual payment demands
-- Pressure tactics
-- Claims of large sums of money
-- Military/government claims
-- Random selection of recipient
-- Requests for assistance moving money
+ONLY report text that matches these phishing indicators:
+
+HIGH SEVERITY (Must report):
+- Requests for passwords, banking details, or SSN
+- Demands for payments or money transfers
+- Direct threats of account suspension
+- Claims of unexpected money or prizes
+- Government/military impersonation
+- Requests to move large sums of money
+
+MEDIUM SEVERITY (Report if suspicious):
+- Unusual urgency + requests for sensitive actions
+- Threats of negative consequences
+- Claims that don't match the sender
+- Unexpected attachments or links
+
+DO NOT REPORT as concerns:
+- Regular deadlines or due dates
+- Meeting times or event schedules
+- Standard company communications
+- Unsubscribe options or footers
+- Copyright notices
+- Support or help information
+- Community guidelines
+- Event registration details
 
 SCORING RULES:
-- If ANY concerns are marked as HIGH, overall risk must be HIGH
-- Multiple MEDIUM concerns should result in HIGH risk
-- A single MEDIUM concern should result in MEDIUM risk
-- Risk level cannot be LOW if Safe is NO
-- Must list ALL suspicious text found (maximum 4)
-- Each suspicious text must be quoted exactly from the email
+- If NO concerning text is found, do not list any CONCERNS
+- Only list text that clearly matches phishing patterns
+- Maximum 4 most suspicious texts, quoted exactly
+- Risk must be LOW if no concerning text is found
+- Safe must be YES if no HIGH/MEDIUM concerns exist
 
 CONFIDENCE LEVELS:
-HIGH: Multiple clear indicators match known scam patterns
-MEDIUM: Some indicators present but pattern is unclear
-LOW: Suspicious elements exist but could be legitimate
+HIGH: Clear evidence or absence of threats
+MEDIUM: Pattern is unclear
+LOW: Insufficient information
 
 RESPOND ONLY WITH THE FOLLOWING EXACT FORMAT - no deviations from it:
 ----
@@ -253,6 +274,7 @@ CONCERNS:
 "[exact text]" - [HIGH/MEDIUM/LOW] - [short explanation]
 ----
 
+For LOW risk emails with no concerns, respond ONLY with the OVERALL section.
 NO EXPLANATIONS. NO ADDITIONAL TEXT. EXACT FORMAT REQUIRED.
 ---
 CONTENT:
@@ -269,7 +291,7 @@ ${emailText}
 
   console.log("promptResult", promptResult, parseAnalysisToJson(promptResult));
 
-  return {
+  const result: ScanResult = {
     urlAnalysis: {
       // @ts-ignore
       urls: urlAnalysis,
@@ -279,6 +301,9 @@ ${emailText}
     contentAnalysis: parseAnalysisToJson(promptResult),
     timestamp: new Date().toISOString()
   };
+
+  chrome.storage.local.set({ [cacheKey]: result });
+  return result;
 }
 
 InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
@@ -289,6 +314,10 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
     });
     */
 
+    if (messageView.getSender().emailAddress === sdk.User.getEmailAddress()) {
+      console.log("Skipping own email");
+      return;
+    }
     const { available } = await window.ai.languageModel.capabilities();
     if (available !== 'readily') {
       console.log('AI is not ready');
@@ -300,11 +329,12 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
       return;
     }
 
+    const emailText = bodyElement.innerText || '';
     const statusContainer = document.createElement('div');
     statusContainer.id = 'ai-scanner-status-container';
     bodyElement.insertBefore(statusContainer, bodyElement.firstChild);
     const instance = createApp(GmailPhishingScanner).mount(statusContainer);
-
+    const messageID = await messageView.getMessageID();
 
     const recipients = await messageView.getRecipientsFull();
     const metadata: EmailMetadata = {
@@ -316,9 +346,8 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
       links: messageView.getLinksInBody().filter(e => e.text.length > 0 && e.href.startsWith('http')).map(e => ({ text: e.text, href: e.href }))
     };
     
-    const emailText = bodyElement.innerText || '';
     try {
-      const scanResult: ScanResult = await analyzeEmail(metadata, emailText);
+      const scanResult: ScanResult = await analyzeEmail(messageID, metadata, emailText);
       console.log("scanResult", scanResult);
       (instance as InstanceType<typeof GmailPhishingScanner>).updateResults(scanResult);
       highlightThreats(bodyElement, scanResult);
