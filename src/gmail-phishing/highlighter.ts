@@ -2,9 +2,9 @@ import type { ScanResult, ThreatLevel } from './types';
 
 const getThreatColor = (level: ThreatLevel): string => {
   const colors = {
-    HIGH: '#dc2626',    // red-600
-    MEDIUM: '#ea580c',  // orange-600
-    LOW: '#16a34a'      // green-600
+    HIGH: '#dc2626',
+    MEDIUM: '#ea580c',
+    LOW: '#16a34a'
   };
   return colors[level] || colors.LOW;
 };

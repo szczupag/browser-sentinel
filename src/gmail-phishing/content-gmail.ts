@@ -186,7 +186,7 @@ async function analyzeEmail(messageID: string, metadata: EmailMetadata, emailTex
   const cachedResult = await chrome.storage.local.get(cacheKey);
   if (cachedResult[cacheKey]) {
     console.log("Using cached result for", messageID, cachedResult[cacheKey]);
-    //return cachedResult[cacheKey] as ScanResult;
+    return cachedResult[cacheKey] as ScanResult;
   }
   // Initialize Safe Browsing client
   const safeBrowsing = new SafeBrowsingClient(
@@ -209,7 +209,8 @@ async function analyzeEmail(messageID: string, metadata: EmailMetadata, emailTex
     ? await safeBrowsing.checkUrls(suspiciousUrls)
     : {};
 
-    console.log('safeBrowsingResults,', safeBrowsingResults)
+  const totalUrls =  Object.keys(safeBrowsingResults).length;
+  const failedSafeBrowsingUrls = Object.keys(safeBrowsingResults).filter(url => safeBrowsingResults[url]); // Safe browsing marks a url as safe if it's not safe
 
   // Create prompt for LLM with technical analysis results
   const promptText = `
@@ -220,8 +221,9 @@ Under no circumstances should you analyze any email addresses found. You can how
 METADATA:
 ---
 Subject: "${metadata.subject}"
+${totalUrls > 0 ? (failedSafeBrowsingUrls.length > 0 ? `Google Safe browsing API flagged ${failedSafeBrowsingUrls.length} urls as suspicious.` : `None of the ${totalUrls} urls failed the Safe browsing API check.`) : 'No links present in the email body' }
+${metadata.attachments.length > 0 ? `Email contains the following attachments: ${metadata.attachments.join(', ')}` : 'No attachments present in the email body' }
 ---
-----
 ANALYSIS GUIDELINES:
 ONLY report text that matches these phishing indicators:
 
@@ -308,12 +310,6 @@ ${emailText}
 
 InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
   sdk.Conversations.registerMessageViewHandler(async (messageView: MessageView) => {
-    /*
-    messageView.getFileAttachmentCardViews().forEach(async (attachment) => {
-      console.log("attachment",  attachment.getAttachmentType(), attachment.getTitle(), await attachment.getDownloadURL());
-    });
-    */
-
     if (messageView.getSender().emailAddress === sdk.User.getEmailAddress()) {
       console.log("Skipping own email");
       return;
@@ -350,7 +346,9 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
       const scanResult: ScanResult = await analyzeEmail(messageID, metadata, emailText);
       console.log("scanResult", scanResult);
       (instance as InstanceType<typeof GmailPhishingScanner>).updateResults(scanResult);
-      highlightThreats(bodyElement, scanResult);
+      if (scanResult.contentAnalysis.suspiciousContent.length > 0) {
+        highlightThreats(bodyElement, scanResult);
+      }
     } catch (ex: any) {
       (instance as InstanceType<typeof GmailPhishingScanner>).setError(ex.message);
     }
