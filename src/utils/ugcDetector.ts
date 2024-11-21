@@ -9,7 +9,6 @@ interface UGCElement {
 
 function analyzeElementStructure(element: HTMLElement): number {
   let score = 0
-  console.log('Analyzing structure for:', element.outerHTML.slice(0, 100))
 
   // Check for common UGC containers
   const isCommentLike =
@@ -26,27 +25,17 @@ function analyzeElementStructure(element: HTMLElement): number {
   // Check for proper content structure
   const hasContent = element.textContent?.trim().length ?? 0 > 20
 
-  // Debug logging
-  console.log('Structure analysis:', {
-    isCommentLike,
-    hasInteractionElements: !!hasInteractionElements,
-    hasMetadata: !!hasMetadata,
-    hasContent,
-  })
-
   if (isCommentLike) score += 0.4
   if (hasInteractionElements) score += 0.2
   if (hasMetadata) score += 0.2
   if (hasContent) score += 0.2
 
-  console.log('Structure score:', score)
   return score
 }
 
 function analyzeContentPatterns(element: HTMLElement): number {
   let score = 0
   const text = element.textContent?.toLowerCase().trim() || ''
-  console.log('Analyzing content:', text.slice(0, 100))
 
   // Common UGC text patterns
   const hasUserMention = /@\w+/.test(text) || text.includes('wrote:') || text.includes('said:')
@@ -54,28 +43,17 @@ function analyzeContentPatterns(element: HTMLElement): number {
   const hasInteractionWords = /(reply|share|like|comment|post|follow)/.test(text)
   const hasProperLength = text.length >= 20 && text.length < 10000
 
-  // Debug logging
-  console.log('Content analysis:', {
-    hasUserMention,
-    hasTimeIndicator,
-    hasInteractionWords,
-    hasProperLength,
-    textLength: text.length,
-  })
-
   if (hasUserMention) score += 0.25
   if (hasTimeIndicator) score += 0.25
   if (hasInteractionWords) score += 0.25
   if (hasProperLength) score += 0.25
 
-  console.log('Content score:', score)
   return score
 }
 
 function analyzeVisualPatterns(element: HTMLElement): number {
   let score = 0
   const style = window.getComputedStyle(element)
-  console.log('Analyzing visual patterns')
 
   // Check for visual separation
   const hasVisualSeparation =
@@ -87,20 +65,52 @@ function analyzeVisualPatterns(element: HTMLElement): number {
     style.padding !== '0px' ||
     style.borderRadius !== '0px'
 
-  // Debug logging
-  console.log('Visual analysis:', {
-    hasVisualSeparation,
-    hasDistinctStyling,
-    backgroundColor: style.backgroundColor,
-    padding: style.padding,
-    border: style.border,
-  })
-
   if (hasVisualSeparation) score += 0.5
   if (hasDistinctStyling) score += 0.5
 
-  console.log('Visual score:', score)
   return score
+}
+
+function isDescendant(parent: HTMLElement, child: HTMLElement): boolean {
+  let node = child.parentElement
+  while (node != null) {
+    if (node === parent) {
+      return true
+    }
+    node = node.parentElement
+  }
+  return false
+}
+
+function filterDuplicateElements(elements: UGCElement[]): UGCElement[] {
+  // Sort by confidence score (highest first) and content length (shortest first)
+  const sortedElements = [...elements].sort((a, b) => {
+    if (a.confidence !== b.confidence) {
+      return b.confidence - a.confidence
+    }
+    // If confidence is equal, prefer shorter content length
+    // This helps select the most specific container
+    return a.content.length - b.content.length
+  })
+
+  const filteredElements: UGCElement[] = []
+
+  for (let i = 0; i < sortedElements.length; i++) {
+    const current = sortedElements[i]
+
+    // Check if this element is a child or parent of any already accepted element
+    const hasRelatedElement = filteredElements.some(
+      (accepted) =>
+        isDescendant(current.container, accepted.container) ||
+        isDescendant(accepted.container, current.container)
+    )
+
+    if (!hasRelatedElement) {
+      filteredElements.push(current)
+    }
+  }
+
+  return filteredElements
 }
 
 export function detectUGC(document: Document): UGCElement[] {
@@ -142,13 +152,6 @@ export function detectUGC(document: Document): UGCElement[] {
     // Combined weighted score
     const confidence = structureScore * 0.4 + contentScore * 0.4 + visualScore * 0.2
 
-    console.log('Element analysis complete:', {
-      structureScore,
-      contentScore,
-      visualScore,
-      confidence,
-    })
-
     // Lower threshold for detection
     if (confidence >= 0.3) {
       // Determine type
@@ -171,15 +174,11 @@ export function detectUGC(document: Document): UGCElement[] {
         container: htmlElement,
         confidence,
       })
-
-      console.log('Added UGC element:', {
-        type,
-        author: authorElement?.textContent?.trim(),
-        contentPreview: htmlElement.textContent?.trim().slice(0, 50),
-      })
     }
   })
 
-  console.log('UGC detection complete. Found elements:', ugcElements.length)
-  return ugcElements
+  // Filter out duplicates before returning
+  const uniqueElements = filterDuplicateElements(ugcElements)
+  console.log('UGC detection complete. Found elements:', uniqueElements.length)
+  return uniqueElements
 }
