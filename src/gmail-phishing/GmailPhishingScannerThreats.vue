@@ -1,23 +1,24 @@
 <template>
   <div class="ai-scanner-status">
-    <div>Analysis Complete</div>
+    <div><t text="Analysis Complete" /></div>
     <div class="ai-scanner-threats">
       <div v-if="result.highThreats > 0" class="threat-indicator">
         <div class="threat-dot high"></div>
-        <span>{{ result.highThreats }} high risk</span>
+        <span><t :text="`${result.highThreats} high risk`" /></span>
       </div>
       <div v-if="result.mediumThreats > 0" class="threat-indicator">
         <div class="threat-dot medium"></div>
-        <span>{{ result.mediumThreats }} medium risk</span>
+        <span><t :text="`${result.mediumThreats} medium risk`" /></span>
       </div>
       <div v-if="result.lowThreats > 0" class="threat-indicator">
         <div class="threat-dot low"></div>
-        <span>{{ result.lowThreats }} low risk</span>
+        <span><t :text="`${result.lowThreats} low risk`" /></span>
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import { default as t } from './TranslateText.vue';
 import { computed } from 'vue';
 import type { ScanResult } from './types';
 

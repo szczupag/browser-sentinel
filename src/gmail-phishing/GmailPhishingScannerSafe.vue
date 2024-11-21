@@ -8,10 +8,10 @@
           </svg>
         </div>
         <div class="message-container">
-          <div class="title clean">No Suspicious Content Detected</div>
+          <div class="title clean"><t text="No Suspicious Content Detected" /></div>
           <div class="description">
-            Our AI analysis didn't detect any concerning patterns in this email. However, always use your judgment
-            as new scam tactics emerge regularly.
+            <t text="Our AI analysis didn't detect any concerning patterns in this email. However, always use your judgment
+            as new scam tactics emerge regularly." />
           </div>
         </div>
       </template>
@@ -23,10 +23,10 @@
           </svg>
         </div>
         <div class="message-container">
-          <div class="title low-risk">Minor Patterns Detected</div>
+          <div class="title low-risk"><t text="Minor Patterns Detected" /></div>
           <div class="description">
-            We found some patterns that sometimes appear in suspicious emails, but they're likely normal in this context. 
-            Review highlighted content if you're unsure.
+            <t text="We found some patterns that sometimes appear in suspicious emails, but they're likely normal in this context. 
+            Review highlighted content if you're unsure." />
           </div>
         </div>
       </template>
@@ -38,10 +38,10 @@
           </svg>
         </div>
         <div class="message-container">
-          <div class="title minor-concerns">Some Elements Need Attention</div>
+          <div class="title minor-concerns"><t text="Some Elements Need Attention" /></div>
           <div class="description">
-            We've detected a few potentially concerning elements. While this might be a legitimate email,
-            review the highlighted content carefully before taking any actions.
+            <t text="We've detected a few potentially concerning elements. While this might be a legitimate email,
+            review the highlighted content carefully before taking any actions." />
           </div>
         </div>
       </template>
@@ -49,6 +49,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import { default as t } from './TranslateText.vue';
 import type { ScanResult } from './types';
 
 defineProps<{

@@ -6,12 +6,13 @@
       </svg>
     </div>
     <div>
-      <strong>High-Risk Email Detected</strong>
-      <div>Multiple suspicious elements found in this message</div>
+      <strong><t text="High-Risk Email Detected" /></strong>
+      <div><t text="Multiple suspicious elements found in this message" /></div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import { default as t } from './TranslateText.vue';
 </script>
 <style scoped>
 .ai-scanner-warning {

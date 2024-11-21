@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// No props needed for loader
+import { default as t } from './TranslateText.vue';
 </script>
 
 <template>
@@ -12,7 +12,7 @@
     <div class="ai-scanner-progress">
       <div class="ai-scanner-bar"></div>
     </div>
-    <span class="ai-scanner-label">Analyzing message...</span>
+    <span class="ai-scanner-label"><t text="Analyzing message..." /></span>
   </div>
 </template>
 
