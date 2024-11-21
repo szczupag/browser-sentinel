@@ -1,72 +1,91 @@
 interface UGCElement {
   content: string
-  type: 'comment' | 'post' | 'message' | 'review' | 'forum' | 'other'
-  author?: string
-  timestamp?: string
   container: HTMLElement
   confidence: number
 }
 
-function analyzeElementStructure(element: HTMLElement): number {
+function findPotentialUGC(document: Document): UGCElement[] {
+  const ugcElements: UGCElement[] = []
+  const processedElements = new Set<HTMLElement>()
+
+  // Use TreeWalker to find text nodes
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      // Skip if parent is style or script
+      if (isInIgnoredTag(node)) {
+        return NodeFilter.FILTER_REJECT
+      }
+
+      const text = node.textContent?.trim() || ''
+      // Skip very short texts and obvious UI elements
+      if (text.length < 20) {
+        return NodeFilter.FILTER_REJECT
+      }
+      return NodeFilter.FILTER_ACCEPT
+    },
+  })
+
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode
+    const container = findContentContainer(textNode)
+
+    if (container && !processedElements.has(container)) {
+      processedElements.add(container)
+
+      ugcElements.push({
+        content: container.textContent?.trim() || '',
+        container,
+        confidence: calculateInitialConfidence(container),
+      })
+    }
+  }
+
+  return filterDuplicateElements(ugcElements)
+}
+
+function isInIgnoredTag(node: Node): boolean {
+  let current = node.parentElement
+  while (current) {
+    const tagName = current.tagName.toLowerCase()
+    if (tagName === 'style' || tagName === 'script' || tagName === 'noscript') {
+      return true
+    }
+    current = current.parentElement
+  }
+  return false
+}
+
+function findContentContainer(node: Node): HTMLElement | null {
+  let current = node.parentElement
+
+  while (current) {
+    const tagName = current.tagName.toLowerCase()
+    // Skip style and script tags
+    if (tagName === 'style' || tagName === 'script' || tagName === 'noscript') {
+      return null
+    }
+
+    if (current.matches('div, p, article, section, li')) {
+      return current
+    }
+    current = current.parentElement
+  }
+
+  return node.parentElement
+}
+
+function calculateInitialConfidence(element: HTMLElement): number {
+  const text = element.textContent?.trim() || ''
   let score = 0
 
-  // Check for common UGC containers
-  const isCommentLike =
-    element.classList.contains('comment') ||
-    element.id.includes('comment') ||
-    element.classList.contains('post') ||
-    element.classList.contains('message')
+  // Basic content checks
+  if (text.length >= 50) score += 0.3
+  if (text.length >= 100) score += 0.2
+  if (text.split(' ').length >= 10) score += 0.3
 
-  // Check for interaction elements
-  const hasInteractionElements = element.querySelector('button, a, .reply, .share, .like')
-
-  // Check for metadata elements
-  const hasMetadata = element.querySelector('.author, .timestamp, .date, time')
-  // Check for proper content structure
-  const hasContent = element.textContent?.trim().length ?? 0 > 20
-
-  if (isCommentLike) score += 0.4
-  if (hasInteractionElements) score += 0.2
+  // Check for metadata
+  const hasMetadata = element.querySelector('time, [datetime]')
   if (hasMetadata) score += 0.2
-  if (hasContent) score += 0.2
-
-  return score
-}
-
-function analyzeContentPatterns(element: HTMLElement): number {
-  let score = 0
-  const text = element.textContent?.toLowerCase().trim() || ''
-
-  // Common UGC text patterns
-  const hasUserMention = /@\w+/.test(text) || text.includes('wrote:') || text.includes('said:')
-  const hasTimeIndicator = /\d+\s+(min|hour|day|week|month|year)s?\s+ago|today|yesterday/.test(text)
-  const hasInteractionWords = /(reply|share|like|comment|post|follow)/.test(text)
-  const hasProperLength = text.length >= 20 && text.length < 10000
-
-  if (hasUserMention) score += 0.25
-  if (hasTimeIndicator) score += 0.25
-  if (hasInteractionWords) score += 0.25
-  if (hasProperLength) score += 0.25
-
-  return score
-}
-
-function analyzeVisualPatterns(element: HTMLElement): number {
-  let score = 0
-  const style = window.getComputedStyle(element)
-
-  // Check for visual separation
-  const hasVisualSeparation =
-    style.borderBottom !== '0px' || style.marginBottom !== '0px' || style.paddingBottom !== '0px'
-
-  // Check for distinct styling
-  const hasDistinctStyling =
-    style.backgroundColor !== 'transparent' ||
-    style.padding !== '0px' ||
-    style.borderRadius !== '0px'
-
-  if (hasVisualSeparation) score += 0.5
-  if (hasDistinctStyling) score += 0.5
 
   return score
 }
@@ -88,8 +107,6 @@ function filterDuplicateElements(elements: UGCElement[]): UGCElement[] {
     if (a.confidence !== b.confidence) {
       return b.confidence - a.confidence
     }
-    // If confidence is equal, prefer shorter content length
-    // This helps select the most specific container
     return a.content.length - b.content.length
   })
 
@@ -98,15 +115,24 @@ function filterDuplicateElements(elements: UGCElement[]): UGCElement[] {
   for (let i = 0; i < sortedElements.length; i++) {
     const current = sortedElements[i]
 
-    // Check if this element is a child or parent of any already accepted element
-    const hasRelatedElement = filteredElements.some(
+    // Find if this element is related to any already accepted element
+    const relatedElementIndex = filteredElements.findIndex(
       (accepted) =>
         isDescendant(current.container, accepted.container) ||
         isDescendant(accepted.container, current.container)
     )
 
-    if (!hasRelatedElement) {
+    if (relatedElementIndex === -1) {
+      // No related element found, add current
       filteredElements.push(current)
+    } else {
+      // Related element found, check if current is child
+      const accepted = filteredElements[relatedElementIndex]
+      if (isDescendant(accepted.container, current.container)) {
+        // Current is child of accepted, replace accepted with current
+        filteredElements[relatedElementIndex] = current
+      }
+      // If current is parent, ignore it (keep existing child)
     }
   }
 
@@ -115,70 +141,5 @@ function filterDuplicateElements(elements: UGCElement[]): UGCElement[] {
 
 export function detectUGC(document: Document): UGCElement[] {
   console.log('Starting UGC detection')
-  const ugcElements: UGCElement[] = []
-  const processedElements = new Set<HTMLElement>()
-
-  // Common UGC container selectors
-  const ugcSelectors = [
-    '.comment',
-    '.post',
-    '.message',
-    '.review',
-    '[class*="comment"]',
-    '[class*="post"]',
-    '[class*="message"]',
-    '[id*="comment"]',
-    '[id*="post"]',
-    '[id*="message"]',
-    'article',
-    '.content',
-    '.user-content',
-  ]
-
-  // Find potential UGC containers
-  const potentialElements = document.querySelectorAll(ugcSelectors.join(','))
-  console.log('Found potential elements:', potentialElements.length)
-
-  potentialElements.forEach((element) => {
-    const htmlElement = element as HTMLElement
-    if (processedElements.has(htmlElement)) return
-    processedElements.add(htmlElement)
-
-    // Calculate scores
-    const structureScore = analyzeElementStructure(htmlElement)
-    const contentScore = analyzeContentPatterns(htmlElement)
-    const visualScore = analyzeVisualPatterns(htmlElement)
-
-    // Combined weighted score
-    const confidence = structureScore * 0.4 + contentScore * 0.4 + visualScore * 0.2
-
-    // Lower threshold for detection
-    if (confidence >= 0.3) {
-      // Determine type
-      let type: UGCElement['type'] = 'other'
-      if (htmlElement.classList.contains('comment')) type = 'comment'
-      else if (htmlElement.classList.contains('post')) type = 'post'
-      else if (htmlElement.classList.contains('message')) type = 'message'
-      else if (htmlElement.classList.contains('review')) type = 'review'
-
-      // Find author and timestamp
-      const authorElement = htmlElement.querySelector('.author, .username, [class*="user"]')
-      const timeElement = htmlElement.querySelector('time, .timestamp, .date')
-
-      ugcElements.push({
-        content: htmlElement.textContent?.trim() || '',
-        type,
-        author: authorElement?.textContent?.trim() ?? undefined,
-        timestamp:
-          timeElement?.textContent?.trim() ?? timeElement?.getAttribute('datetime') ?? undefined,
-        container: htmlElement,
-        confidence,
-      })
-    }
-  })
-
-  // Filter out duplicates before returning
-  const uniqueElements = filterDuplicateElements(ugcElements)
-  console.log('UGC detection complete. Found elements:', uniqueElements.length)
-  return uniqueElements
+  return findPotentialUGC(document)
 }

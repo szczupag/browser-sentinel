@@ -10,15 +10,26 @@ import { detectUGC } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
 
 const UGC_ANALYSIS_PROMPT = `
-You are a security expert analyzing user-generated content for potential threats. Your task is to analyze the provided content and identify genuine security concerns.
+You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.
 
-IMPORTANT:
-- Base your analysis ONLY on the provided content
-- Do not make assumptions about information that is not provided
-- If information is insufficient, reflect this in your confidence score
-- Never invent or assume details that are not explicitly given
+STEP 1 - UGC IDENTIFICATION:
+User-generated content typically includes:
+- Comments
+- Reviews
+- Forum posts
+- Social media posts
+- Chat messages
+- User submissions
 
-ANALYSIS GUIDELINES:
+NOT user-generated content:
+- Navigation menus
+- Product descriptions
+- Official company content
+- Static website text
+- Terms of service
+- Marketing copy
+
+STEP 2 - SECURITY ANALYSIS (Only if UGC is detected):
 HIGH SEVERITY (Must report):
 - Malware distribution attempts
 - Phishing links or requests
@@ -39,13 +50,12 @@ LOW SEVERITY (Report if concerning):
 - Unclear intentions
 - Minor misleading content
 
-DO NOT REPORT:
-- Regular discussions
-- Personal opinions
-- Product reviews
-- General complaints
-- Support requests
-- Regular promotional content
+IMPORTANT:
+- Base your analysis ONLY on the provided content
+- If content is NOT user-generated, return LOW risk and HIGH confidence
+- Never invent or assume details that are not explicitly given
+- If overallRiskScore is MEDIUM or HIGH, there must be at least one violation
+- If there are no violations, overallRiskScore must be LOW
 
 RESPONSE REQUIREMENTS:
 1. Maximum 4 violations
@@ -53,19 +63,31 @@ RESPONSE REQUIREMENTS:
 3. Must be valid parseable JSON
 4. Use only these rule names: "Phishing Attempt", "Scam Pattern", "Impersonation", "Suspicious Link"
 
-RESPONSE EXAMPLE:
-Input: Comment claiming to be customer service, requesting login credentials
+RESPONSE EXAMPLE 1 (Not UGC):
+Input: "Our company provides secure payment processing for all major credit cards."
 Output: {
+  "isUGC": false,
+  "violations": [],
+  "overallRiskScore": "LOW",
+  "overallConfidence": "HIGH",
+  "isSafe": true,
+  "recommendation": "This is standard website content, not user-generated."
+}
+
+RESPONSE EXAMPLE 2 (UGC with threats):
+Input: "Hi, I'm from PayPal support. Your account is locked. Send your password to unlock: example@scam.com"
+Output: {
+  "isUGC": true,
   "violations": [
     {
       "rule": "Impersonation",
       "severity": "HIGH",
-      "explanation": "Falsely claims to be customer service representative"
+      "explanation": "Falsely claims to be PayPal support"
     },
     {
       "rule": "Phishing Attempt",
       "severity": "HIGH",
-      "explanation": "Requests sensitive login credentials"
+      "explanation": "Requests password credentials"
     }
   ],
   "overallRiskScore": "HIGH",
@@ -163,11 +185,11 @@ function showPhishingAlert(data: any) {
 
 ;(async () => {
   const domain = location.hostname
-  console.log('Phishing analysis: Analyzing domain...')
+  console.log('Analyzing domain...')
   const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce])
 
   if (analysisResult.isSuspicious) {
-    console.log('Phishing analysis: Domain is suspicious. Analyzing content...')
+    console.log('Domain is suspicious. Analyzing content...')
     const { available } = await window.ai.languageModel.capabilities()
     if (available !== 'readily') {
       console.log('AI is not ready')
@@ -193,34 +215,38 @@ Website Structure and Content:
 ------------------------------
 ${extractWebsiteInfo(document)}
 ------------------------------`
-    console.log('Phishing analysis: Prompt text', promptText, estimateTokens(promptText))
+    console.log('Website content analysis: Prompt text', promptText, estimateTokens(promptText))
 
     const promptResult = await session.prompt(promptText)
-    console.log('Phishing analysis: Prompt result', promptResult)
+    console.log('Website content analysis: Prompt result', promptResult)
 
     let phishingAnalysis: PhishingAnalysis | null = null
 
     try {
       phishingAnalysis = JSON.parse(promptResult)
     } catch (e) {
-      console.error('Error parsing phishing analysis', e)
+      console.error('Error parsing website content analysis', e)
     }
 
     if (phishingAnalysis?.isSafe === false) {
-      console.log('Phishing analysis: Content is not safe.')
+      console.log('Website content is not safe.')
       await showPhishingAlert(phishingAnalysis)
     } else if (phishingAnalysis?.isSafe === true) {
-      console.log('Phishing analysis: Content is safe.')
+      console.log('Website content is safe.')
     }
 
     session.destroy()
   } else {
-    console.log('Phishing analysis: Domain is not suspicious. Checking for UGC...')
+    console.log('Domain is not suspicious. Checking for UGC...')
     const ugcElements = detectUGC(document)
-    console.log('Phishing analysis: Found UGC elements', ugcElements)
 
     if (ugcElements.length > 0) {
-      console.log('Phishing analysis: Found UGC content, analyzing...')
+      console.log('Found UGC candidates. Analyzing...')
+      const { available } = await window.ai.languageModel.capabilities()
+      if (available !== 'readily') {
+        console.log('AI is not ready')
+        return
+      }
 
       const session = await window.ai.languageModel.create({
         topK: 1,
@@ -238,17 +264,11 @@ ${extractWebsiteInfo(document)}
       }
 
       for (const ugc of ugcElements) {
-        const promptText = `
-Content Type: ${ugc.type}
-${ugc.author ? `Author: ${ugc.author}` : ''}
-${ugc.timestamp ? `Timestamp: ${ugc.timestamp}` : ''}
----
-CONTENT:
-${ugc.content}
----`
+        const promptText = ugc.content
 
+        console.log('UGC analysis prompt text:', promptText)
         const promptResult = await session.prompt(promptText)
-        console.log('UGC Analysis Result:', promptResult)
+        console.log('UGC analysis result:', promptResult)
 
         try {
           const analysis: PhishingAnalysis = JSON.parse(promptResult)
@@ -258,7 +278,6 @@ ${ugc.content}
             allThreats.violations.push(...analysis.violations)
             highlightUGCThreats(ugc.container, analysis.overallRiskScore)
 
-            // Update overall risk score
             if (analysis.overallRiskScore === 'HIGH') {
               allThreats.overallRiskScore = 'HIGH'
             } else if (
@@ -268,7 +287,6 @@ ${ugc.content}
               allThreats.overallRiskScore = 'MEDIUM'
             }
 
-            // Update overall confidence
             if (analysis.overallConfidence === 'LOW') {
               allThreats.overallConfidence = 'LOW'
             } else if (
@@ -288,14 +306,14 @@ ${ugc.content}
         allThreats.recommendation =
           'Suspicious user-generated content detected. Review with caution.'
         console.log('Phishing analysis: UGC contains threats')
-        // await showPhishingAlert(allThreats)
+        await showPhishingAlert(allThreats)
       } else {
-        console.log('Phishing analysis: UGC is safe')
+        console.log('UGC contains no threats')
       }
 
       session.destroy()
     } else {
-      console.log('Phishing analysis: No UGC content found')
+      console.log('No UGC candidates found.')
     }
   }
 })()
