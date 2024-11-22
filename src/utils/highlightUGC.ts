@@ -5,16 +5,20 @@ export function highlightUGCThreats(element: HTMLElement, severity: 'HIGH' | 'ME
     border: element.style.border,
     borderRadius: element.style.borderRadius,
     position: element.style.position,
+    display: element.style.display,
   }
 
   // Add data attribute to mark as highlighted
   element.dataset.aiSentinelHighlight = 'true'
   element.dataset.level = severity
 
+  // Set position relative if not already positioned
+  if (element.style.position !== 'relative' && element.style.position !== 'absolute') {
+    element.style.position = 'relative'
+  }
+
   // Apply styles directly to the element
   Object.assign(element.style, {
-    position: 'relative',
-    borderRadius: '4px',
     ...(severity === 'HIGH'
       ? {
           backgroundColor: 'rgba(239, 68, 68, 0.1)',

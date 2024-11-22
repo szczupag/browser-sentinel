@@ -8,6 +8,8 @@ import { analyzeDomain } from './utils/domainUtils.ts'
 import { estimateTokens, extractWebsiteInfo } from './utils/extractWebsiteInfo.ts'
 import { detectUGC } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
+import UGCThreatIcon from './components/UGCThreatIcon.vue'
+import UGCThreatAlert from './components/UGCThreatAlert.vue'
 
 const UGC_ANALYSIS_PROMPT = `
 You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.
@@ -183,7 +185,65 @@ function showPhishingAlert(data: any) {
   document.body.appendChild(shadowHost)
 }
 
+function showUGCThreatAlert(analysis: PhishingAnalysis) {
+  const shadowHost = document.createElement('div')
+  shadowHost.setAttribute('id', 'ugc-threat-alert-app-shadow-host')
+  shadowHost.style.all = 'unset'
+  const shadowRoot = shadowHost.attachShadow({ mode: 'open' })
+  const container = document.createElement('div')
+  const cssContainer = document.createElement('style')
+  cssContainer.textContent = styles
+
+  shadowRoot.appendChild(cssContainer)
+  shadowRoot.appendChild(container)
+  container.id = 'ugc-threat-alert-app'
+
+  const app = createApp(UGCThreatAlert, { analysis })
+  app.mount(container)
+  document.body.appendChild(shadowHost)
+}
+
+function showUGCThreatIcon(
+  wrapper: HTMLElement,
+  severity: 'HIGH' | 'MEDIUM' | 'LOW',
+  analysis: any
+) {
+  const shadowHost = document.createElement('div')
+  shadowHost.setAttribute('id', 'ugc-threat-icon-shadow-host')
+  shadowHost.style.all = 'unset'
+  const shadowRoot = shadowHost.attachShadow({ mode: 'open' })
+  const container = document.createElement('div')
+  const cssContainer = document.createElement('style')
+  cssContainer.textContent = styles
+
+  shadowRoot.appendChild(cssContainer)
+  shadowRoot.appendChild(container)
+  container.id = 'ugc-threat-icon-app'
+
+  const app = createApp(UGCThreatIcon, {
+    severity,
+    analysis,
+  })
+  app.mount(container)
+  wrapper.appendChild(shadowHost)
+}
+
+// Add this function at the top level
+function setupUGCAlertListener() {
+  // Remove existing listener if any
+  document.removeEventListener('show-ugc-alert', handleUGCAlert)
+
+  // Add new listener
+  document.addEventListener('show-ugc-alert', handleUGCAlert)
+}
+
+// Handler function for the event
+function handleUGCAlert(event: CustomEvent) {
+  showUGCThreatAlert(event.detail)
+}
+
 ;(async () => {
+  setupUGCAlertListener()
   const domain = location.hostname
   console.log('Analyzing domain...')
   const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce])
@@ -276,7 +336,6 @@ ${extractWebsiteInfo(document)}
           if (!analysis.isSafe) {
             hasThreats = true
             allThreats.violations.push(...analysis.violations)
-            highlightUGCThreats(ugc.container, analysis.overallRiskScore)
 
             if (analysis.overallRiskScore === 'HIGH') {
               allThreats.overallRiskScore = 'HIGH'
@@ -295,6 +354,15 @@ ${extractWebsiteInfo(document)}
             ) {
               allThreats.overallConfidence = 'MEDIUM'
             }
+
+            // Get the wrapper element that ensures proper icon positioning
+            highlightUGCThreats(ugc.container, analysis.overallRiskScore)
+
+            // Show the icon using shadow DOM
+            showUGCThreatIcon(ugc.container, analysis.overallRiskScore, analysis)
+
+            // Store analysis data on the container
+            ugc.container.dataset.ugcAnalysis = JSON.stringify(analysis)
           }
         } catch (e) {
           console.error('Error parsing UGC analysis:', e)
@@ -306,7 +374,6 @@ ${extractWebsiteInfo(document)}
         allThreats.recommendation =
           'Suspicious user-generated content detected. Review with caution.'
         console.log('Phishing analysis: UGC contains threats')
-        await showPhishingAlert(allThreats)
       } else {
         console.log('UGC contains no threats')
       }
