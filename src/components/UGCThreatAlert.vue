@@ -49,13 +49,18 @@
             >
               <div class="phishing-rule-header">
                 <span class="phishing-rule-name">{{ violation.rule }}</span>
-                <span class="phishing-severity-badge" :class="getSeverityClass(violation.severity)">
+                <span class="phishing-rule-badge" :class="getSeverityClass(violation.severity)">
                   {{ violation.severity }}
                 </span>
               </div>
               <div class="phishing-rule-description">{{ violation.explanation }}</div>
             </div>
           </div>
+        </div>
+
+        <div v-if="analysis.recommendation" class="phishing-summary">
+          <p><b>Recommendation:</b></p>
+          <div class="recommendation-text">{{ analysis.recommendation }}</div>
         </div>
 
         <div class="phishing-actions">
@@ -79,6 +84,7 @@ const props = defineProps<{
     }>
     overallRiskScore: string
     overallConfidence: string
+    recommendation: string
   }
 }>()
 
