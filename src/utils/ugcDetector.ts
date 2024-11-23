@@ -16,6 +16,12 @@ function findPotentialUGC(document: Document): UGCElement[] {
         return NodeFilter.FILTER_REJECT
       }
 
+      // Skip if parent element is already analyzed
+      const container = findContentContainer(node as Text)
+      if (container?.dataset.ugcAnalyzed === 'true') {
+        return NodeFilter.FILTER_REJECT
+      }
+
       const text = node.textContent?.trim() || ''
       // Skip very short texts and obvious UI elements
       if (text.length < 20) {
@@ -30,6 +36,7 @@ function findPotentialUGC(document: Document): UGCElement[] {
     const container = findContentContainer(textNode)
 
     if (container && !processedElements.has(container)) {
+      container.dataset.ugcAnalyzed = 'true'
       processedElements.add(container)
 
       ugcElements.push({
@@ -142,4 +149,95 @@ function filterDuplicateElements(elements: UGCElement[]): UGCElement[] {
 export function detectUGC(document: Document): UGCElement[] {
   console.log('Starting UGC detection')
   return findPotentialUGC(document)
+}
+
+function debounce<T extends (...args: any[]) => void>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null
+  return (...args: Parameters<T>) => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+    timeout = setTimeout(() => {
+      func(...args)
+    }, wait)
+  }
+}
+
+function handleDOMMutations(mutations: MutationRecord[]) {
+  try {
+    let shouldScan = false
+    const significantTextChanges = new Set<Node>()
+
+    for (const mutation of mutations) {
+      // Check added nodes
+      if (mutation.type === 'childList') {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+            const textContent = node.textContent?.trim() || ''
+            if (textContent.length >= 20) {
+              significantTextChanges.add(node)
+              shouldScan = true
+            }
+          }
+        }
+      }
+
+      // Check modified text
+      if (mutation.type === 'characterData' && mutation.target) {
+        const textContent = mutation.target.textContent?.trim() || ''
+        if (textContent.length >= 20) {
+          significantTextChanges.add(mutation.target)
+          shouldScan = true
+        }
+      }
+    }
+
+    if (shouldScan) {
+      console.debug('UGC changes detected:', significantTextChanges.size, 'significant changes')
+      const ugcElements = findPotentialUGC(document)
+      if (ugcElements.length > 0) {
+        const event = new CustomEvent('ugc-detected', {
+          detail: { elements: ugcElements, changedNodes: Array.from(significantTextChanges) },
+        })
+        document.dispatchEvent(event)
+      }
+    }
+  } catch (error) {
+    console.error('Error handling DOM mutations:', error)
+  }
+}
+
+export function setupUGCDetection(document: Document) {
+  try {
+    // Initial scan
+    const initialElements = findPotentialUGC(document)
+    if (initialElements.length > 0) {
+      const event = new CustomEvent('ugc-detected', {
+        detail: { elements: initialElements, initial: true },
+      })
+      document.dispatchEvent(event)
+    }
+
+    // Set up mutation observer with debounced handler
+    const debouncedHandler = debounce(handleDOMMutations, 500)
+    const observer = new MutationObserver(debouncedHandler)
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      characterDataOldValue: true,
+    })
+
+    // Return cleanup function
+    return () => {
+      observer.disconnect()
+    }
+  } catch (error) {
+    console.error('Error setting up UGC detection:', error)
+    return () => {} // Return no-op cleanup function
+  }
 }

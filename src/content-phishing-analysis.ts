@@ -6,7 +6,7 @@ import PhishingAlert from './components/PhishingAlert.vue'
 import styles from './content-phishing-analysis.css?inline'
 import { analyzeDomain } from './utils/domainUtils.ts'
 import { estimateTokens, extractWebsiteInfo } from './utils/extractWebsiteInfo.ts'
-import { detectUGC } from './utils/ugcDetector.ts'
+import { setupUGCDetection } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
 import UGCThreatIcon from './components/UGCThreatIcon.vue'
 import UGCThreatAlert from './components/UGCThreatAlert.vue'
@@ -242,8 +242,92 @@ function handleUGCAlert(event: CustomEvent) {
   showUGCThreatAlert(event.detail)
 }
 
+async function analyzeUGCElements(elements: any[], session: any) {
+  const allThreats: PhishingAnalysis = {
+    violations: [],
+    overallRiskScore: 'LOW' as Risk,
+    overallConfidence: 'HIGH' as Risk,
+    isSafe: true,
+    recommendation: 'No suspicious user-generated content detected.',
+  }
+
+  let hasThreats = false
+
+  for (const ugc of elements) {
+    try {
+      const promptText = ugc.content
+      console.log('UGC analysis prompt text:', promptText)
+      const promptResult = await session.prompt(promptText)
+      console.log('UGC analysis prompt result:', promptResult)
+      const analysis: PhishingAnalysis = JSON.parse(promptResult)
+
+      if (!analysis.isSafe) {
+        hasThreats = true
+        allThreats.violations.push(...analysis.violations)
+
+        // Update overall risk score
+        if (analysis.overallRiskScore === 'HIGH') {
+          allThreats.overallRiskScore = 'HIGH'
+        } else if (
+          analysis.overallRiskScore === 'MEDIUM' &&
+          allThreats.overallRiskScore !== 'HIGH'
+        ) {
+          allThreats.overallRiskScore = 'MEDIUM'
+        }
+
+        // Update confidence score
+        if (analysis.overallConfidence === 'LOW') {
+          allThreats.overallConfidence = 'LOW'
+        } else if (
+          analysis.overallConfidence === 'MEDIUM' &&
+          allThreats.overallConfidence === 'HIGH'
+        ) {
+          allThreats.overallConfidence = 'MEDIUM'
+        }
+
+        highlightUGCThreats(ugc.container, analysis.overallRiskScore)
+        showUGCThreatIcon(ugc.container, analysis.overallRiskScore, analysis)
+        ugc.container.dataset.ugcAnalysis = JSON.stringify(analysis)
+      }
+    } catch (e) {
+      console.error('Error analyzing UGC element:', e)
+    }
+  }
+
+  if (hasThreats) {
+    allThreats.isSafe = false
+    allThreats.recommendation = 'Suspicious user-generated content detected. Review with caution.'
+    // showUGCThreatAlert(allThreats)
+  }
+
+  return allThreats
+}
+
+async function handleUGCDetection(event: CustomEvent) {
+  const { elements, initial } = event.detail
+  console.log(`Found UGC candidates (${initial ? 'initial scan' : 'mutation'}):`, elements)
+
+  const { available } = await window.ai.languageModel.capabilities()
+  if (available !== 'readily') {
+    console.log('AI is not ready')
+    return
+  }
+
+  const session = await window.ai.languageModel.create({
+    topK: 1,
+    temperature: 0.1,
+    systemPrompt: UGC_ANALYSIS_PROMPT,
+  })
+
+  try {
+    await analyzeUGCElements(elements, session)
+  } finally {
+    session.destroy()
+  }
+}
+
+// Main execution
 ;(async () => {
-  setupUGCAlertListener()
   const domain = location.hostname
   console.log('Analyzing domain...')
   const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce])
@@ -297,90 +381,21 @@ ${extractWebsiteInfo(document)}
 
     session.destroy()
   } else {
-    console.log('Domain is not suspicious. Checking for UGC...')
-    const ugcElements = detectUGC(document)
+    console.log('Domain is not suspicious. Setting up UGC detection...')
 
-    if (ugcElements.length > 0) {
-      console.log('Found UGC candidates. Analyzing...')
-      const { available } = await window.ai.languageModel.capabilities()
-      if (available !== 'readily') {
-        console.log('AI is not ready')
-        return
-      }
+    // Set up UGC alert listener
+    setupUGCAlertListener()
 
-      const session = await window.ai.languageModel.create({
-        topK: 1,
-        temperature: 0.1,
-        systemPrompt: UGC_ANALYSIS_PROMPT,
-      })
+    // Set up UGC detection with event handler
+    document.addEventListener('ugc-detected', handleUGCDetection)
 
-      let hasThreats = false
-      const allThreats: PhishingAnalysis = {
-        violations: [],
-        overallRiskScore: 'LOW' as Risk,
-        overallConfidence: 'HIGH' as Risk,
-        isSafe: true,
-        recommendation: 'No suspicious user-generated content detected.',
-      }
+    // Start UGC detection
+    const cleanup = setupUGCDetection(document)
 
-      for (const ugc of ugcElements) {
-        const promptText = ugc.content
-
-        console.log('UGC analysis prompt text:', promptText)
-        const promptResult = await session.prompt(promptText)
-        console.log('UGC analysis result:', promptResult)
-
-        try {
-          const analysis: PhishingAnalysis = JSON.parse(promptResult)
-
-          if (!analysis.isSafe) {
-            hasThreats = true
-            allThreats.violations.push(...analysis.violations)
-
-            if (analysis.overallRiskScore === 'HIGH') {
-              allThreats.overallRiskScore = 'HIGH'
-            } else if (
-              analysis.overallRiskScore === 'MEDIUM' &&
-              allThreats.overallRiskScore !== 'HIGH'
-            ) {
-              allThreats.overallRiskScore = 'MEDIUM'
-            }
-
-            if (analysis.overallConfidence === 'LOW') {
-              allThreats.overallConfidence = 'LOW'
-            } else if (
-              analysis.overallConfidence === 'MEDIUM' &&
-              allThreats.overallConfidence === 'HIGH'
-            ) {
-              allThreats.overallConfidence = 'MEDIUM'
-            }
-
-            // Get the wrapper element that ensures proper icon positioning
-            highlightUGCThreats(ugc.container, analysis.overallRiskScore)
-
-            // Show the icon using shadow DOM
-            showUGCThreatIcon(ugc.container, analysis.overallRiskScore, analysis)
-
-            // Store analysis data on the container
-            ugc.container.dataset.ugcAnalysis = JSON.stringify(analysis)
-          }
-        } catch (e) {
-          console.error('Error parsing UGC analysis:', e)
-        }
-      }
-
-      if (hasThreats) {
-        allThreats.isSafe = false
-        allThreats.recommendation =
-          'Suspicious user-generated content detected. Review with caution.'
-        console.log('Phishing analysis: UGC contains threats')
-      } else {
-        console.log('UGC contains no threats')
-      }
-
-      session.destroy()
-    } else {
-      console.log('No UGC candidates found.')
-    }
+    // Clean up when extension is disabled or page is unloaded
+    window.addEventListener('unload', () => {
+      cleanup()
+      document.removeEventListener('ugc-detected', handleUGCDetection)
+    })
   }
 })()
