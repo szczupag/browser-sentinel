@@ -1,130 +1,112 @@
 <template>
-    <div v-if="isVisible" class="phishing-alert-overlay" @click.self="handleOverlayClick">
-      <div class="phishing-alert-container">
-        <div class="phishing-alert-header">
-          <div class="phishing-alert-header-content">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            Security Alert: Potential Phishing Attempt
+  <div v-if="isVisible" class="phishing-alert-overlay" @click.self="handleOverlayClick">
+    <div class="phishing-alert-container">
+      <div class="phishing-alert-header">
+        <div class="phishing-alert-header-content">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span>{{ title }}</span>
+        </div>
+        <button class="phishing-alert-close" @click="handleClose" aria-label="Close alert">
+          <svg
+            class="phishing-alert-close-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="phishing-alert-content">
+        <div class="phishing-risk-section">
+          <div class="risk-badge">
+            <span class="risk-badge-label">Risk Level</span>
+            <span class="risk-badge-value" :class="['severity-' + overallRiskScore.toLowerCase()]">
+              {{ overallRiskScore }}
+            </span>
+          </div>
+          <div class="risk-badge">
+            <span class="risk-badge-label">Confidence</span>
+            <span class="risk-badge-value" :class="['severity-' + overallConfidence.toLowerCase()]">
+              {{ overallConfidence }}
+            </span>
           </div>
         </div>
-        <div class="phishing-alert-content">
-          <div class="phishing-risk-section">
-            <div class="phishing-risk-item">
-              <span class="phishing-risk-label">Risk Level:</span>
-              <div class="phishing-risk-badge" :class="riskLevelClass">
-                {{ overallRiskScore }}
-              </div>
-            </div>
-            <div class="phishing-risk-item">
-              <span class="phishing-risk-label">Confidence:</span>
-              <div class="phishing-risk-badge" :class="confidenceLevelClass">
-                {{ overallConfidence }}
-              </div>
-            </div>
-          </div>
-          
-          <p><b>Detected Security Risks:</b></p>
-          <div class="phishing-rules">
-            <div class="phishing-rules-list">
-              <div 
-                v-for="violation in violations" 
-                :key="violation.rule"
-                class="phishing-rule-item"
-              >
-                <div class="phishing-rule-header">
-                  <span class="phishing-rule-name">{{ violation.rule }}</span>
-                  <span class="phishing-severity-badge" :class="getSeverityClass(violation.severity)">
-                    {{ violation.severity }}
-                  </span>
-                </div>
-                <div class="phishing-rule-description">{{ violation.explanation }}</div>
-              </div>
-            </div>
-          </div>
 
-          <div class="phishing-summary" v-html="formattedRecommendation"></div>
-
-          <div class="phishing-actions">
-            <button 
-              class="phishing-btn phishing-btn-back" 
-              @click="handleBack"
-            >
-              Leave Site
-            </button>
-            <button 
-              class="phishing-btn phishing-btn-proceed" 
-              @click="handleProceed"
-            >
-              Proceed Anyway
-            </button>
+        <div class="violations-list">
+          <h3>Detected Security Risks</h3>
+          <div v-for="violation in violations" :key="violation.rule" class="violation-item">
+            <div class="violation-header">
+              <span class="violation-name">{{ violation.rule }}</span>
+              <span :class="['violation-severity', 'severity-' + violation.severity.toLowerCase()]">
+                {{ violation.severity }}
+              </span>
+            </div>
+            <p class="violation-description">{{ violation.explanation }}</p>
           </div>
+        </div>
+
+        <div v-if="recommendation" class="recommendation">
+          <h3>Recommendation</h3>
+          <p>{{ recommendation }}</p>
+        </div>
+
+        <div class="phishing-actions">
+          <button class="phishing-btn phishing-btn-back" @click="handleBack">Leave Site</button>
+          <button class="phishing-btn phishing-btn-proceed" @click="handleProceed">
+            Proceed Anyway
+          </button>
         </div>
       </div>
     </div>
+  </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue';
-//import MarkdownIt from 'markdown-it';
+<script setup lang="ts">
+import { ref } from 'vue'
 
-//const md = new MarkdownIt();
+const props = defineProps<{
+  title: string
+  violations: Array<{
+    rule: string
+    severity: string
+    explanation: string
+  }>
+  overallRiskScore: string
+  overallConfidence: string
+  recommendation?: string
+}>()
 
-const isVisible = ref(true);
+const isVisible = ref(true)
 
-const props = defineProps({
-  violations: {
-    type: Array,
-    required: true
-  },
-  overallRiskScore: {
-    type: String,
-    required: true
-  },
-  overallConfidence: {
-    type: String,
-    required: true
-  },
-  isSafe: {
-    type: Boolean,
-    required: true
-  },
-  recommendation: {
-    type: String,
-    required: true
-  }
-});
+const handleClose = () => {
+  isVisible.value = false
+}
 
-const confidencePercent = computed(() => {
-  return (props.confidence * 100).toFixed(0);
-});
+const handleOverlayClick = () => {
+  handleClose()
+}
 
 const handleBack = () => {
-  isVisible.value = false;
-  location.href = 'https://www.google.com';
-};
+  isVisible.value = false
+  window.history.back()
+}
 
 const handleProceed = () => {
-  isVisible.value = false;
-};
-
-const formattedRecommendation = computed(() => {
-  //return md.render(props.recommendation);
-  return props.recommendation;
-});
-
-const riskLevelClass = computed(() => {
-  return `risk-${props.overallRiskScore.toLowerCase()}`;
-});
-
-const confidenceLevelClass = computed(() => {
-  return `confidence-${props.overallConfidence.toLowerCase()}`;
-});
-
-const getSeverityClass = (severity) => {
-  return `severity-${severity.toLowerCase()}`;
-};
+  isVisible.value = false
+}
 </script>

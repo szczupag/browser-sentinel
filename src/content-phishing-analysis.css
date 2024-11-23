@@ -1,321 +1,370 @@
+/* Root Variables & Theme Configuration */
+:host {
+  /* Core Colors */
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-danger: #dc2626;
+  --color-warning: #ea580c;
+  --color-success: #16a34a;
+  /* Light Theme */
+  --light-bg: #ffffff;
+  --light-text: #1f2937;
+  --light-text-secondary: #4b5563;
+  --light-border: rgba(0, 0, 0, 0.1);
+  --light-overlay: rgba(0, 0, 0, 0.75);
+  --light-shadow: rgba(0, 0, 0, 0.1);
+  /* Dark Theme */
+  --dark-bg: #1a1b1e;
+  --dark-text: #f3f4f6;
+  --dark-text-secondary: #9ca3af;
+  --dark-border: rgba(255, 255, 255, 0.1);
+  --dark-overlay: rgba(0, 0, 0, 0.85);
+  --dark-shadow: rgba(0, 0, 0, 0.4);
+  /* Risk Colors */
+  --risk-high-bg: rgba(220, 38, 38, 0.1);
+  --risk-high-border: rgba(220, 38, 38, 0.3);
+  --risk-medium-bg: rgba(234, 88, 12, 0.1);
+  --risk-medium-border: rgba(234, 88, 12, 0.3);
+  --risk-low-bg: rgba(22, 163, 74, 0.1);
+  --risk-low-border: rgba(22, 163, 74, 0.3);
+  --risk-high: var(--color-danger);
+  --risk-medium: var(--color-warning);
+  --risk-low: var(--color-success);
+  /* Alert Colors */
+  --alert-bg: var(--bg-primary);
+  --alert-text: var(--text-primary);
+  --alert-shadow: var(--shadow-color);
+  --alert-shadow-dark: var(--dark-shadow);
+}
+
+/* Theme Application */
+@media (prefers-color-scheme: light) {
+  :host {
+    --bg-primary: var(--light-bg);
+    --text-primary: var(--light-text);
+    --text-secondary: var(--light-text-secondary);
+    --border-color: var(--light-border);
+    --overlay-bg: var(--light-overlay);
+    --shadow-color: var(--light-shadow);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --bg-primary: var(--dark-bg);
+    --text-primary: var(--dark-text);
+    --text-secondary: var(--dark-text-secondary);
+    --border-color: var(--dark-border);
+    --overlay-bg: var(--dark-overlay);
+    --shadow-color: var(--dark-shadow);
+  }
+}
+
+/* Alert Overlay */
 .phishing-alert-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: grid;
+  place-items: center;
+  padding: 20px;
   z-index: 2147483647;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  animation: fade-in 0.2s ease;
 }
 
+/* Alert Container */
 .phishing-alert-container {
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  width: 520px;
-  max-width: 90%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--shadow-color);
+  width: 100%;
+  max-width: 560px;
   max-height: 90vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
+  animation: slide-up 0.3s ease;
 }
 
+/* Alert Header */
 .phishing-alert-header {
-  background-color: #2c3e50;
-  color: white;
+  background: var(--text-primary);
+  color: var(--bg-primary);
   padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .phishing-alert-header-content {
   display: flex;
   align-items: center;
+  gap: 12px;
   font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
-.phishing-alert-header-content svg {
-  margin-right: 12px;
+.phishing-alert-header-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2px;
 }
 
+.phishing-alert-close {
+  background: transparent;
+  border: none;
+  color: var(--bg-primary);
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phishing-alert-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.phishing-alert-close-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+/* Alert Content */
 .phishing-alert-content {
   padding: 24px;
   overflow-y: auto;
+  text-align: left;
 }
 
+/* Risk Section */
 .phishing-risk-section {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 24px;
   gap: 16px;
-}
-
-.phishing-risk-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.phishing-risk-label {
-  font-size: 14px;
-  color: #495057;
-  white-space: nowrap;
-}
-
-.phishing-risk-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-}
-
-/* Risk level badges */
-.risk-high {
-  background-color: #fde8e8;
-  color: #e53e3e;
-}
-
-.risk-medium {
-  background-color: #fef3c7;
-  color: #d97706;
-}
-
-.risk-low {
-  background-color: #def7ec;
-  color: #057a55;
-}
-
-/* Confidence level badges */
-.confidence-high {
-  background-color: #e8f0fe;
-  color: #1a56db;
-}
-
-.confidence-medium {
-  background-color: #f3f4f6;
-  color: #4b5563;
-}
-
-.confidence-low {
-  background-color: #f3f4f6;
-  color: #6b7280;
-}
-
-.phishing-rules {
-  background-color: #e9ecef;
-  border-left: 3px solid #2c3e50;
-  padding: 16px;
   margin-bottom: 24px;
-  border-radius: 2px;
 }
 
-.phishing-rules h3 {
-  margin: 0 0 12px 0;
-  color: #2c3e50;
-  font-size: 14px;
-  font-weight: 600;
+.risk-badge {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
 }
 
-.phishing-rules-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.phishing-rule-item {
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.phishing-rule-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.phishing-rule-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.risk-badge-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
   margin-bottom: 4px;
 }
 
-.phishing-rule-name {
-  color: #2c3e50;
+.risk-badge-value {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
   font-weight: 600;
   font-size: 14px;
 }
 
-.phishing-severity-badge {
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: 500;
-  text-transform: uppercase;
+/* Violations List */
+.violations-list {
+  margin: 24px 0;
 }
 
-.severity-high {
-  background-color: #fde8e8;
-  color: #e53e3e;
+.violations-list h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 16px;
 }
 
-.severity-medium {
-  background-color: #fef3c7;
-  color: #d97706;
+.violation-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
 }
 
-.severity-low {
-  background-color: #def7ec;
-  color: #057a55;
+.violation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.phishing-rule-description {
-  color: #495057;
+.violation-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.violation-severity {
   font-size: 13px;
-  line-height: 1.4;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-.phishing-summary {
-  color: #2c3e50;
+.violation-description {
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.5;
-  margin-bottom: 24px;
-  background-color: #f8f9fa;
-  padding: 12px;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
 }
 
-.phishing-summary p {
-  margin: 0 0 8px 0;
+/* Recommendation Section */
+.recommendation {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-color);
 }
 
-.phishing-summary p:last-child {
-  margin-bottom: 0;
+.recommendation h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 8px;
 }
 
-.phishing-summary strong {
-  color: #e53e3e;
-  font-weight: 600;
+.recommendation p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
+/* Action Buttons */
 .phishing-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #dee2e6;
+  margin-top: 24px;
 }
 
 .phishing-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 3px;
-  font-size: 14px;
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 6px;
   font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-}
-
-.phishing-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
+  border: none;
 }
 
 .phishing-btn-back {
-  background-color: #e53e3e;
+  background: var(--color-danger);
   color: white;
 }
 
 .phishing-btn-back:hover {
-  background-color: #c53030;
+  background: color-mix(in srgb, var(--color-danger) 90%, black);
 }
 
 .phishing-btn-proceed {
-  background-color: transparent;
-  color: #6c757d;
-  border: 1px solid #6c757d;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .phishing-btn-proceed:hover {
-  background-color: #f1f3f5;
-  border-color: #495057;
+  background: color-mix(in srgb, var(--bg-primary) 96%, var(--text-primary));
 }
 
-@media (max-width: 480px) {
-  .phishing-alert-container {
-    max-width: 95%;
-    margin: 10px;
-  }
+/* Severity Classes */
+.severity-high {
+  background: var(--risk-high-bg);
+  color: var(--color-danger);
+}
 
-  .phishing-risk-section {
-    flex-direction: column;
-    gap: 8px;
-  }
+.severity-medium {
+  background: var(--risk-medium-bg);
+  color: var(--color-warning);
+}
 
-  .phishing-actions {
-    flex-direction: column;
-  }
+.severity-low {
+  background: var(--risk-low-bg);
+  color: var(--color-success);
+}
 
-  .phishing-btn {
-    width: 100%;
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.ugc-threat-icon {
+/* Highlight Styles */
+.ai-sentinel-highlight {
+  cursor: help;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
+}
+
+.ai-sentinel-highlight[data-level="HIGH"] {
+  background: var(--risk-high-bg);
+  border-bottom: 2px solid var(--risk-high-border);
+}
+
+.ai-sentinel-highlight[data-level="MEDIUM"] {
+  background: var(--risk-medium-bg);
+  border-bottom: 2px solid var(--risk-medium-border);
+}
+
+.ai-sentinel-highlight[data-level="LOW"] {
+  background: var(--risk-low-bg);
+  border-bottom: 2px solid var(--risk-low-border);
+}
+
+.ai-sentinel-highlight:hover {
+  filter: brightness(0.95);
+}
+
+.threat-icon {
   position: absolute;
   top: -6px;
   right: -6px;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #2c3e50;
+  width: 28px;
+  height: 28px;
+  border: none;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
   padding: 4px;
-  transform-origin: center;
-  transition: transform 0.2s ease;
-  pointer-events: auto;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+  color: var(--bg-primary);
 }
 
-.ugc-threat-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.ugc-threat-icon:hover {
+.threat-icon:hover {
   transform: scale(1.1);
 }
 
-/* Color variations based on severity */
-.ugc-threat-icon.severity-high {
-  background: #dc2626;
+@media (prefers-color-scheme: dark) {
+  .threat-icon {
+    box-shadow: 0 2px 8px var(--shadow-color);
+  }
 }
 
-.ugc-threat-icon.severity-medium {
-  background: #ea580c;
+.threat-icon.severity-high {
+  background: var(--risk-high);
 }
 
-.ugc-threat-icon.severity-low {
-  background: #2c3e50;
+.threat-icon.severity-medium {
+  background: var(--risk-medium);
 }
 
-/* Add new style for highlighted elements */
-[data-ai-sentinel-highlight="true"] {
-  position: relative !important;
-  display: inline-block;
-  padding-right: 16px;
+.threat-icon.severity-low {
+  background: var(--risk-low);
 }
