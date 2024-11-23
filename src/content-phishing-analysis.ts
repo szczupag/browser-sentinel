@@ -10,7 +10,6 @@ import { estimateTokens, extractWebsiteInfo } from './utils/extractWebsiteInfo.t
 import { setupUGCDetection } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
 import UGCThreatIcon from './components/UGCThreatIcon.vue'
-import UGCThreatAlert from './components/UGCThreatAlert.vue'
 
 const UGC_ANALYSIS_PROMPT = `
 You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.
@@ -169,6 +168,7 @@ Your response must be valid JSON that can be parsed by JSON.parse(). Ensure prop
 let vueApp = null
 type Risk = 'HIGH' | 'MEDIUM' | 'LOW'
 export type PhishingAnalysis = {
+  title: string
   violations: {
     rule: string
     severity: Risk
@@ -211,7 +211,8 @@ function showUGCThreatAlert(analysis: PhishingAnalysis) {
   shadowRoot.appendChild(container)
   container.id = 'ugc-threat-alert-app'
 
-  const app = createApp(UGCThreatAlert, { analysis })
+  analysis.title = 'Suspicious Content Detected'
+  const app = createApp(PhishingAlert, analysis)
   app.mount(container)
   document.body.appendChild(shadowHost)
 }
@@ -257,6 +258,7 @@ function handleUGCAlert(event: CustomEvent) {
 
 async function analyzeUGCElements(elements: any[], session: any) {
   const allThreats: PhishingAnalysis = {
+    title: 'Suspicious Content Detected',
     violations: [],
     overallRiskScore: 'LOW' as Risk,
     overallConfidence: 'HIGH' as Risk,
@@ -387,6 +389,7 @@ ${extractWebsiteInfo(document)}
 
     if (phishingAnalysis?.isSafe === false) {
       console.log('Website content is not safe.')
+      phishingAnalysis.title = 'Security Warning'
       await showPhishingAlert(phishingAnalysis)
     } else if (phishingAnalysis?.isSafe === true) {
       console.log('Website content is safe.')
