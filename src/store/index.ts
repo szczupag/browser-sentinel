@@ -1,8 +1,27 @@
 import { defineStore } from 'pinia'
 
+interface DomainAnalysis {
+  isSuspicious: boolean
+  legitimateDomain?: string
+  distance?: number
+  similarity?: number
+}
+
+interface ContentAnalysis {
+  overallRiskScore: 'HIGH' | 'MEDIUM' | 'LOW'
+  overallConfidence: 'HIGH' | 'MEDIUM' | 'LOW'
+  violations: Array<{
+    rule: string
+    severity: string
+    explanation: string
+  }>
+}
+
 export const useMainStore = defineStore('main', {
   state: () => ({
     displayWarnings: true,
+    domainAnalysis: null as DomainAnalysis | null,
+    contentAnalysis: null as ContentAnalysis | null,
   }),
   actions: {
     toggleDisplayWarnings() {
