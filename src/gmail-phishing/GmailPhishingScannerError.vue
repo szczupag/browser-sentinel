@@ -6,12 +6,14 @@
       </svg>
     </div>
     <div class="ai-scanner-error-content">
-      <div class="ai-scanner-error-title">Analysis Failed</div>
-      <div class="ai-scanner-error-message">{{ message }}</div>
+      <div class="ai-scanner-error-title"><t text="Analysis Failed" /></div>
+      <div class="ai-scanner-error-message"><t :text="message" /></div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import { default as t } from './TranslateText.vue';
+
 defineProps<{
   message: string;
 }>();

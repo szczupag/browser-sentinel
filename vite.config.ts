@@ -23,6 +23,7 @@ export default defineConfig({
       manifest: generateManifest,
       disableAutoLaunch: true,
       watchFilePaths: ['package.json', 'src/manifest.json'],
+      additionalInputs: ['src/offscreen/offscreen.html'],
     }),
     viteStaticCopy({
       targets: [{ src: 'node_modules/@inboxsdk/core/pageWorld.js', dest: 'dist' }],

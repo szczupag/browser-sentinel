@@ -330,7 +330,7 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
     statusContainer.id = 'ai-scanner-status-container';
     bodyElement.insertBefore(statusContainer, bodyElement.firstChild);
     const instance = createApp(GmailPhishingScanner).mount(statusContainer);
-    const messageID = await messageView.getMessageID();
+    const messageID = await messageView.getMessageIDAsync();
 
     const recipients = await messageView.getRecipientsFull();
     const metadata: EmailMetadata = {
@@ -347,7 +347,7 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
       console.log("scanResult", scanResult);
       (instance as InstanceType<typeof GmailPhishingScanner>).updateResults(scanResult);
       if (scanResult.contentAnalysis.suspiciousContent.length > 0) {
-        highlightThreats(bodyElement, scanResult);
+        await highlightThreats(bodyElement, scanResult);
       }
     } catch (ex: any) {
       (instance as InstanceType<typeof GmailPhishingScanner>).setError(ex.message);

@@ -1,4 +1,5 @@
 import type { ScanResult, ThreatLevel } from './types';
+import { translate } from '../utils/translate';
 
 const getThreatColor = (level: ThreatLevel): string => {
   const colors = {
@@ -9,14 +10,14 @@ const getThreatColor = (level: ThreatLevel): string => {
   return colors[level] || colors.LOW;
 };
 
-export const highlightThreats = (container: HTMLElement, scanResult: ScanResult): void => {
+export const highlightThreats = async (container: HTMLElement, scanResult: ScanResult): Promise<void> => {
   console.log('Starting highlighting process');
   removeExistingHighlights(container);
 
   const suspiciousContent = scanResult.contentAnalysis.suspiciousContent;
   console.log('Found suspicious content:', suspiciousContent);
 
-  const processTextNode = (node: Text): void => {
+  const processTextNode = async (node: Text): Promise<void> => {
     const content = node.textContent || '';
     console.log('Processing text node:', content);
     
@@ -41,7 +42,8 @@ export const highlightThreats = (container: HTMLElement, scanResult: ScanResult)
           const span = document.createElement('span');
           span.className = 'ai-sentinel-highlight';
           span.dataset.level = suspicious.severity;
-          span.dataset.reason = suspicious.reason;
+          span.dataset.levelText = await translate(`${suspicious.severity} Risk`);
+          span.dataset.reason = await translate(suspicious.reason);
           
           range.surroundContents(span);
           console.log('Successfully highlighted with level:', suspicious.severity);
@@ -71,9 +73,11 @@ export const highlightThreats = (container: HTMLElement, scanResult: ScanResult)
   );
 
   let node: Text | null;
+  const nodes: Text[] = [];
   while ((node = walker.nextNode() as Text)) {
-    processTextNode(node);
+    nodes.push(node);
   }
+  await Promise.all(nodes.map(node => processTextNode(node)));
 
   setupTooltips(container);
 };
@@ -105,12 +109,13 @@ const setupTooltips = (container: HTMLElement): void => {
     if (!target.classList.contains('ai-sentinel-highlight')) return;
 
     const level = target.dataset.level as ThreatLevel;
+    const levelText = target.dataset.levelText || '';
     const reason = target.dataset.reason || '';
     const threatColor = getThreatColor(level);
 
     tooltip.innerHTML = `
       <div class="tooltip-level" style="color: ${threatColor}">
-        ${level} Risk
+        ${levelText}
       </div>
       <div class="tooltip-reason">${reason}</div>
     `;
