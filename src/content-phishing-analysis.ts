@@ -10,6 +10,7 @@ import { estimateTokens, extractWebsiteInfo } from './utils/extractWebsiteInfo.t
 import { setupUGCDetection } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
 import UGCThreatIcon from './components/UGCThreatIcon.vue'
+import type { DomainAnalysis, ContentAnalysis } from './store'
 
 const UGC_ANALYSIS_PROMPT = `
 You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.
@@ -165,7 +166,6 @@ Output: {
 
 Your response must be valid JSON that can be parsed by JSON.parse(). Ensure proper escaping of any characters within string fields. No additional text or formatting allowed.`
 
-let vueApp = null
 type Risk = 'HIGH' | 'MEDIUM' | 'LOW'
 export type PhishingAnalysis = {
   title: string
@@ -193,9 +193,9 @@ function showPhishingAlert(data: any) {
   shadowRoot.appendChild(container)
   container.id = 'phishing-alert-app'
 
-  vueApp = createApp(PhishingAlert, { ...data })
-  vueApp.mount(container)
+  createApp(PhishingAlert, { ...data }).mount(container)
   document.body.appendChild(shadowHost)
+  sendAnalysisToBackground({ content: data })
 }
 
 function showUGCThreatAlert(analysis: PhishingAnalysis) {
@@ -215,6 +215,8 @@ function showUGCThreatAlert(analysis: PhishingAnalysis) {
   const app = createApp(PhishingAlert, analysis)
   app.mount(container)
   document.body.appendChild(shadowHost)
+
+  sendAnalysisToBackground({ content: analysis })
 }
 
 function showUGCThreatIcon(
@@ -312,7 +314,7 @@ async function analyzeUGCElements(elements: any[], session: any) {
   if (hasThreats) {
     allThreats.isSafe = false
     allThreats.recommendation = 'Suspicious user-generated content detected. Review with caution.'
-    // showUGCThreatAlert(allThreats)
+    sendAnalysisToBackground({ content: allThreats })
   }
 
   return allThreats
@@ -341,11 +343,41 @@ async function handleUGCDetection(event: CustomEvent) {
   }
 }
 
+// Add these functions at the top level
+function sendAnalysisToBackground(analysis: {
+  domain?: DomainAnalysis
+  content?: ContentAnalysis
+}) {
+  // Map PhishingAnalysis to ContentAnalysis
+  const contentAnalysis = analysis.content
+    ? {
+        overallRiskScore: analysis.content.overallRiskScore,
+        overallConfidence: analysis.content.overallConfidence,
+        violations: analysis.content.violations.map((v) => ({
+          rule: v.rule,
+          severity: v.severity,
+          explanation: v.explanation,
+        })),
+      }
+    : undefined
+
+  const message = {
+    type: 'UPDATE_ANALYSIS',
+    payload: {
+      domainAnalysis: analysis.domain,
+      contentAnalysis: contentAnalysis,
+    },
+  }
+  console.log('Sending message to background:', message)
+  chrome.runtime.sendMessage(message)
+}
+
 // Main execution
 ;(async () => {
   const domain = location.hostname
   console.log('Analyzing domain...')
   const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce, ...news])
+  sendAnalysisToBackground({ domain: analysisResult })
 
   if (analysisResult.isSuspicious) {
     console.log('Domain is suspicious. Analyzing content...')

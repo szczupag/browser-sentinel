@@ -62,9 +62,23 @@
 
 <script setup lang="ts">
 import { useMainStore } from '../store'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const store = useMainStore()
+
+// Move initialization to onMounted
+onMounted(async () => {
+  try {
+    await store.initialize()
+  } catch (error) {
+    console.error('Failed to initialize store:', error)
+    store.$patch({
+      displayWarnings: true,
+      domainAnalysis: null,
+      contentAnalysis: null,
+    })
+  }
+})
 
 const domainStatus = computed(() => {
   if (!store.domainAnalysis) return 'Not analyzed'
@@ -72,17 +86,17 @@ const domainStatus = computed(() => {
 })
 
 const domainStatusClass = computed(() => {
-  if (!store.domainAnalysis) return ''
+  if (!store.domainAnalysis) return 'severity-low'
   return `severity-${store.domainAnalysis.isSuspicious ? 'high' : 'low'}`
 })
 
 const contentRiskClass = computed(() => {
-  if (!store.contentAnalysis?.overallRiskScore) return ''
+  if (!store.contentAnalysis?.overallRiskScore) return 'severity-low'
   return `severity-${store.contentAnalysis.overallRiskScore.toLowerCase()}`
 })
 
 const confidenceClass = computed(() => {
-  if (!store.contentAnalysis?.overallConfidence) return ''
+  if (!store.contentAnalysis?.overallConfidence) return 'severity-low'
   return `severity-${store.contentAnalysis.overallConfidence.toLowerCase()}`
 })
 </script>
