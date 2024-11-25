@@ -55,6 +55,7 @@ LOW SEVERITY (Report if concerning):
 IMPORTANT:
 - Base your analysis ONLY on the provided content
 - If content is NOT user-generated, return LOW risk and HIGH confidence
+- Treat UGC as safe when discussing, warning about, or educating on security threats
 - Never invent or assume details that are not explicitly given
 - If overallRiskScore is MEDIUM or HIGH, there must be at least one violation
 - If there are no violations, overallRiskScore must be LOW
@@ -98,7 +99,18 @@ Output: {
   "recommendation": "Do not interact with this content. Likely a phishing attempt."
 }
 
-Your response must be valid JSON that can be parsed by JSON.parse(). Ensure proper escaping of any characters within string fields. No additional text or formatting allowed.`
+RESPONSE EXAMPLE 3 (UGC with no threats):
+Input: "Watch out everyone! \"I just received this obvious scam email:URGENT: Your Amazon account has been suspended! Click here to verify: amaz0n-verify.com\". Don't fall for it - notice the suspicious domain and urgency tactics."
+Output: {
+  "isUGC": true,
+  "violations": [],
+  "overallRiskScore": "LOW",
+  "overallConfidence": "HIGH",
+  "isSafe": true,
+  "recommendation": "This appears to be a legitimate discussion about security threats. The user is appropriately warning others by sharing and analyzing a scam example. The surrounding context and educational tone indicate this is a helpful security awareness post."
+}
+
+Your response must contain only a valid JSON that can be parsed by JSON.parse(). Ensure proper escaping of any characters within string fields. No additional text or formatting allowed.`
 
 const SUSPICIOUS_DOMAIN_ANALYSIS_PROMPT = `
 You are a security expert analyzing websites for potential phishing indicators. Your task is to analyze provided website content and combine it with domain analysis results to detect phishing attempts.
