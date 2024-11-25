@@ -1,15 +1,26 @@
 import { distance as levenshtein } from 'fastest-levenshtein'
+import psl from 'psl'
 
 /**
- * Extracts the main domain from a full domain string.
- * Example: "bank.barclays.co.uk" -> "barclays.co.uk"
+ * Extracts the main domain from a full domain string using a bottom-up approach.
+ * Handles any number of TLD levels.
+ * Examples:
+ * - "sub.example.com" -> "example.com"
+ * - "sub.example.co.uk" -> "example.co.uk"
+ * - "deep.sub.example.com.pl" -> "example.com.pl"
+ * - "something.platform.amazonaws.com" -> "platform.amazonaws.com"
+ * - "my.example.com.tr.nl" -> "example.com.tr.nl"
+ *
+ * @param domain The domain to process
+ * @returns The main domain (registrable domain or eTLD+1)
  */
-export function extractMainDomain(domain: string): string {
-  const parts = domain.split('.')
-  if (parts.length >= 3 && parts[parts.length - 2] === 'co') {
-    return parts.slice(-3).join('.')
-  }
-  return parts.slice(-2).join('.')
+export function extractMainDomain(domain: string): string | null {
+  if (!domain) return ''
+  // Parse the domain using psl
+  const parsed = psl.parse(domain)
+
+  // Check if parsing was successful and return the domain
+  return parsed.error ? null : parsed.domain
 }
 
 /**
@@ -33,41 +44,32 @@ export function analyzeDomain(
   distance?: number
   similarity?: number
 } {
-  // Remove 'www.' prefix and normalize domain
-  const normalizedCurrentDomain = currentDomain.toLowerCase().replace(/^www\./, '')
-  const mainCurrentDomain = extractMainDomain(normalizedCurrentDomain)
+  const mainCurrentDomain = extractMainDomain(currentDomain)
+
+  if (!mainCurrentDomain) return { isSuspicious: false }
+
+  // First check if the domain is in the legitimate domains list
+  const isLegitimate = legitimateDomains.some((legitDomain) => {
+    const mainLegitDomain = extractMainDomain(legitDomain)
+    return mainCurrentDomain === mainLegitDomain
+  })
+
+  if (isLegitimate) {
+    return { isSuspicious: false }
+  }
 
   // Check each legitimate domain
   for (const originalLegitimateDomain of legitimateDomains) {
     // Normalize legitimate domain as well
-    const legitimateDomain = originalLegitimateDomain.toLowerCase().replace(/^www\./, '')
-    const mainLegitimateDomain = extractMainDomain(legitimateDomain)
+    const mainLegitimateDomain = extractMainDomain(originalLegitimateDomain)
 
-    // Skip if current domain is a subdomain of legitimate domain
-    if (normalizedCurrentDomain.endsWith(`.${mainLegitimateDomain}`)) {
-      return { isSuspicious: false }
-    }
+    if (!mainLegitimateDomain) continue
 
     const distance = levenshtein(mainCurrentDomain, mainLegitimateDomain)
     const similarity = 1 - distance / mainLegitimateDomain.length
 
     // If very similar but not exact match
     if (distance <= 2 && similarity >= 0.85 && mainCurrentDomain !== mainLegitimateDomain) {
-      return {
-        isSuspicious: true,
-        legitimateDomain: originalLegitimateDomain,
-        distance,
-        similarity,
-      }
-    }
-
-    // Check for suspicious variations (domain.contains but not exact match)
-    const legitWithoutTLD = mainLegitimateDomain.split('.')[0]
-    if (
-      mainCurrentDomain.includes(legitWithoutTLD) &&
-      mainCurrentDomain !== mainLegitimateDomain &&
-      similarity >= 0.5
-    ) {
       return {
         isSuspicious: true,
         legitimateDomain: originalLegitimateDomain,
