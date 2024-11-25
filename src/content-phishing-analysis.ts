@@ -55,7 +55,7 @@ LOW SEVERITY (Report if concerning):
 IMPORTANT:
 - Base your analysis ONLY on the provided content
 - If content is NOT user-generated, return LOW risk and HIGH confidence
-- Treat UGC as safe when discussing, warning about, or educating on security threats
+- Treat UGC as safe when it doesn't contain threats or when it is an article or post describing security threats, phishing attempts, sharing experiences with scams, or providing security advice
 - Never invent or assume details that are not explicitly given
 - If overallRiskScore is MEDIUM or HIGH, there must be at least one violation
 - If there are no violations, overallRiskScore must be LOW

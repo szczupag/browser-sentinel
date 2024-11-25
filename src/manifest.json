@@ -10,14 +10,12 @@
   "background": {
     "service_worker": "src/background.ts"
   },
-  "host_permissions": [
-    "https://mail.google.com/"
-  ],
+  "host_permissions": ["https://mail.google.com/"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "exclude_matches": ["https://mail.google.com/*"],
       "js": ["src/content-phishing-analysis.ts"]
-
     },
     {
       "matches": ["https://mail.google.com/*"],
