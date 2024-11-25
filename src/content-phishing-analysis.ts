@@ -1,5 +1,6 @@
 import finance from './static/finance.ts'
 import ecommerce from './static/ecommerce.ts'
+import news from './static/news.ts'
 import { createApp } from 'vue'
 // @ts-ignore
 import PhishingAlert from './components/PhishingAlert.vue'
@@ -342,7 +343,7 @@ async function handleUGCDetection(event: CustomEvent) {
 ;(async () => {
   const domain = location.hostname
   console.log('Analyzing domain...')
-  const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce])
+  const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce, ...news])
 
   if (analysisResult.isSuspicious) {
     console.log('Domain is suspicious. Analyzing content...')
