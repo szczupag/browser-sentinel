@@ -1,24 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useMainStore } from './index'
-import { chrome } from '../../testSetup'
 
 describe('Main Store', () => {
   beforeEach(() => {
-    chrome.storage.sync.get.mockImplementation((keys, callback) => {
-      callback({ displayWarnings: true })
-    })
     setActivePinia(createPinia())
   })
 
   afterEach(() => {
-    chrome.storage.sync.get.mockClear()
+    vi.clearAllMocks()
   })
 
-  it('Toggles display warnings setting', () => {
+  it('Toggles display warnings setting', async () => {
     const store = useMainStore()
     expect(store.displayWarnings).toBe(true)
-    store.toggleDisplayWarnings()
+    await store.toggleDisplayWarnings()
     expect(store.displayWarnings).toBe(false)
   })
 
@@ -28,9 +24,14 @@ describe('Main Store', () => {
     expect(store.displayWarnings).toBe(true)
   })
 
-  it('Saves settings', () => {
+  it('Saves settings', async () => {
     const store = useMainStore()
-    store.saveSettings()
-    expect(chrome.storage.sync.set).toHaveBeenCalledWith({ displayWarnings: true })
+    await store.saveSettings()
+    expect(chrome.storage.local.set).toHaveBeenCalledWith({
+      displayWarnings: true,
+      contentAnalysis: null,
+      domainAnalysis: null,
+      status: null,
+    })
   })
 })

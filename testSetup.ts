@@ -1,14 +1,33 @@
 import { vi } from 'vitest'
 
-export const chrome = {
-  runtime: {
-    lastError: null,
-  },
+interface ChromeMock {
   storage: {
-    sync: {
-      get: vi.fn(),
-      set: vi.fn(),
+    local: {
+      set: ReturnType<typeof vi.fn>
+      get: ReturnType<typeof vi.fn>
+      onChanged: {
+        addListener: ReturnType<typeof vi.fn>
+        removeListener: ReturnType<typeof vi.fn>
+      }
+    }
+  }
+}
+
+const mockChromeApi: ChromeMock = {
+  storage: {
+    local: {
+      set: vi.fn(() => Promise.resolve()),
+      get: vi.fn(() => Promise.resolve({ displayWarnings: true })),
+      onChanged: {
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+      },
     },
   },
 }
-;(global as any).chrome = chrome
+
+declare global {
+  var chrome: ChromeMock
+}
+
+global.chrome = mockChromeApi
