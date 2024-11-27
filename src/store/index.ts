@@ -39,34 +39,46 @@ export const useMainStore = defineStore('main', {
       // Listen for storage changes
       chrome.storage.local.onChanged.addListener((changes) => {
         console.log('Storage changed:', changes)
-        for (const [key, { newValue }] of Object.entries(changes)) {
-          if (key === 'domainAnalysis') {
-            this.domainAnalysis = newValue
-          } else if (key === 'contentAnalysis') {
-            this.contentAnalysis = newValue
-          } else if (key === 'displayWarnings') {
-            this.displayWarnings = newValue
-          } else if (key === 'status') {
-            this.status = newValue
+
+        // Get current tab ID
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const currentTabId = tabs[0]?.id
+          if (!currentTabId) return
+
+          for (const [key, { newValue }] of Object.entries(changes)) {
+            if (key === 'displayWarnings') {
+              this.displayWarnings = newValue
+            } else if (key === `tab_${currentTabId}_domainAnalysis`) {
+              this.domainAnalysis = newValue
+            } else if (key === `tab_${currentTabId}_contentAnalysis`) {
+              this.contentAnalysis = newValue
+            } else if (key === `tab_${currentTabId}_status`) {
+              this.status = newValue
+            }
           }
-        }
+        })
       })
     },
 
     async loadSettings() {
       try {
+        // Get current tab ID
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+        const currentTabId = tabs[0]?.id
+        if (!currentTabId) throw new Error('No active tab found')
+
         const data = await chrome.storage.local.get([
           'displayWarnings',
-          'domainAnalysis',
-          'contentAnalysis',
-          'status',
+          `tab_${currentTabId}_domainAnalysis`,
+          `tab_${currentTabId}_contentAnalysis`,
+          `tab_${currentTabId}_status`,
         ])
 
         // Set defaults if data is empty
         this.displayWarnings = data.displayWarnings ?? true
-        this.domainAnalysis = data.domainAnalysis ?? null
-        this.contentAnalysis = data.contentAnalysis ?? null
-        this.status = data.status ?? null
+        this.domainAnalysis = data[`tab_${currentTabId}_domainAnalysis`] ?? null
+        this.contentAnalysis = data[`tab_${currentTabId}_contentAnalysis`] ?? null
+        this.status = data[`tab_${currentTabId}_status`] ?? null
 
         console.log('Loaded settings:', data)
       } catch (error) {
@@ -80,11 +92,15 @@ export const useMainStore = defineStore('main', {
     },
 
     async saveSettings() {
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+      const currentTabId = tabs[0]?.id
+      if (!currentTabId) throw new Error('No active tab found')
+
       await chrome.storage.local.set({
         displayWarnings: this.displayWarnings,
-        domainAnalysis: this.domainAnalysis,
-        contentAnalysis: this.contentAnalysis,
-        status: this.status,
+        [`tab_${currentTabId}_domainAnalysis`]: this.domainAnalysis,
+        [`tab_${currentTabId}_contentAnalysis`]: this.contentAnalysis,
+        [`tab_${currentTabId}_status`]: this.status,
       })
     },
 

@@ -11,6 +11,9 @@ interface ChromeMock {
       }
     }
   }
+  tabs: {
+    query: ReturnType<typeof vi.fn>
+  }
 }
 
 const mockChromeApi: ChromeMock = {
@@ -23,6 +26,9 @@ const mockChromeApi: ChromeMock = {
         removeListener: vi.fn(),
       },
     },
+  },
+  tabs: {
+    query: vi.fn(() => Promise.resolve([{ id: 123 }])),
   },
 }
 

@@ -32,8 +32,25 @@ async function createOffscreenDocument() {
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UPDATE_ANALYSIS') {
-    console.log('Setting storage with payload:', message.payload)
-    chrome.storage.local.set(message.payload, () => {
+    const tabId = sender.tab?.id
+    if (!tabId) {
+      console.error('No tab ID found for message:', message)
+      return true
+    }
+
+    const payload = {
+      [`tab_${tabId}_domainAnalysis`]: message.payload.domainAnalysis,
+      [`tab_${tabId}_contentAnalysis`]: message.payload.contentAnalysis,
+      [`tab_${tabId}_status`]: message.payload.status,
+    }
+
+    // Only update display warnings if it's included in the payload
+    if (message.payload.displayWarnings !== undefined) {
+      payload.displayWarnings = message.payload.displayWarnings
+    }
+
+    console.log('Setting storage with payload:', payload)
+    chrome.storage.local.set(payload, () => {
       if (chrome.runtime.lastError) {
         console.error('Storage error:', chrome.runtime.lastError)
       } else {

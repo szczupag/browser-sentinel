@@ -265,7 +265,10 @@ async function analyzeUGCElements(elements: any[], session: any) {
   let hasThreats = false
 
   for (const ugc of elements) {
-    sendAnalysisToBackground({ content: allThreats, status: 'STARTING_CONTENT_ANALYSIS' })
+    sendAnalysisToBackground({
+      content: allThreats,
+      status: AnalysisStatus.STARTING_CONTENT_ANALYSIS,
+    })
     try {
       const promptText = ugc.content
       console.log('UGC analysis prompt text:', promptText)
@@ -309,8 +312,10 @@ async function analyzeUGCElements(elements: any[], session: any) {
   if (hasThreats) {
     allThreats.isSafe = false
     allThreats.recommendation = 'Suspicious user-generated content detected. Review with caution.'
-    sendAnalysisToBackground({ content: allThreats, status: 'CONTENT_ANALYSIS_FINISHED' })
+    sendAnalysisToBackground({ content: allThreats })
   }
+
+  sendAnalysisToBackground({ status: AnalysisStatus.ANALYSIS_FINISHED })
 
   return allThreats
 }
