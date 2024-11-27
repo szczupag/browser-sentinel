@@ -1,6 +1,8 @@
 import '@inboxsdk/core/background.js'
 declare const ai: typeof window.ai
 
+console.log('Hello from the background script')
+
 async function createOffscreenDocument() {
   const offscreenUrl = 'src/offscreen/offscreen.html'
   // Check if offscreen document already exists
@@ -60,7 +62,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true
 })
+
+// Clean up tab data when tab is closed
+export const handleTabRemoved = (tabId: number): Promise<void> => {
+  return new Promise((resolve) => {
+    console.log('Cleaning up data for tab:', tabId)
+    chrome.storage.local.get(null, (items) => {
+      const keysToRemove = Object.keys(items).filter((key) => key.startsWith(`tab_${tabId}_`))
+
+      if (keysToRemove.length > 0) {
+        chrome.storage.local.remove(keysToRemove, () => {
+          if (chrome.runtime.lastError) {
+            console.error('Error removing tab data:', chrome.runtime.lastError)
+          } else {
+            console.log('Successfully removed data for keys:', keysToRemove)
+          }
+          resolve()
+        })
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+// Register the listener
+chrome.tabs.onRemoved.addListener((tabId) => {
+  handleTabRemoved(tabId).catch(console.error)
+})
 ;(async () => {
-  console.log('Hello from the background script')
   await createOffscreenDocument()
 })()
