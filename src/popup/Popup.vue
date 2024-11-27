@@ -6,7 +6,22 @@
       </div>
     </div>
 
-    <div class="analysis-section">
+    <!-- Analysis Status -->
+    <div v-if="store.status === AnalysisStatus.STARTING_DOMAIN_ANALYSIS" class="status-section">
+      <div class="status-indicator">
+        <div class="loading-spinner"></div>
+        <span>Starting security analysis...</span>
+      </div>
+    </div>
+
+    <!-- Domain Analysis -->
+    <div
+      v-if="
+        store.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS ||
+        store.status === AnalysisStatus.ANALYSIS_FINISHED
+      "
+      class="analysis-section"
+    >
       <h2>Domain Analysis</h2>
       <div class="risk-badge">
         <span class="risk-badge-label">Status</span>
@@ -19,7 +34,16 @@
       </p>
     </div>
 
-    <div class="analysis-section">
+    <!-- Content Analysis Loading -->
+    <div v-if="store.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS" class="status-section">
+      <div class="status-indicator">
+        <div class="loading-spinner"></div>
+        <span>Analyzing page content...</span>
+      </div>
+    </div>
+
+    <!-- Content Analysis Results -->
+    <div v-if="store.status === AnalysisStatus.ANALYSIS_FINISHED" class="analysis-section">
       <h2>Content Analysis</h2>
       <div class="risk-section">
         <div class="risk-badge">
@@ -63,6 +87,7 @@
 <script setup lang="ts">
 import { useMainStore } from '../store'
 import { computed, onMounted } from 'vue'
+import { AnalysisStatus } from '../constants/analysisStatus'
 
 const store = useMainStore()
 
@@ -76,6 +101,7 @@ onMounted(async () => {
       displayWarnings: true,
       domainAnalysis: null,
       contentAnalysis: null,
+      status: null,
     })
   }
 })
@@ -344,6 +370,54 @@ input:checked + .toggle-slider:before {
 
   .analysis-detail {
     color: #9ca3af;
+  }
+}
+
+/* Add these new styles to your existing CSS */
+.status-section {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #4b5563;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .status-section {
+    background: #1a1b1e;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .status-indicator {
+    color: #9ca3af;
+  }
+
+  .loading-spinner {
+    border-color: #374151;
+    border-top-color: #6366f1;
   }
 }
 </style>
