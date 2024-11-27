@@ -25,7 +25,7 @@
       <h2>Domain Analysis</h2>
       <div class="risk-badge">
         <span class="risk-badge-label">Status</span>
-        <span class="risk-badge-value" :class="domainStatusClass">
+        <span class="risk-badge-value" :class="domainStatusClass" data-testid="domain-status-badge">
           {{ domainStatus }}
         </span>
       </div>
@@ -48,13 +48,13 @@
       <div class="risk-section">
         <div class="risk-badge">
           <span class="risk-badge-label">Risk Level</span>
-          <span class="risk-badge-value" :class="contentRiskClass">
+          <span class="risk-badge-value" :class="contentRiskClass" data-testid="content-risk-badge">
             {{ store.contentAnalysis?.overallRiskScore || 'Not analyzed' }}
           </span>
         </div>
         <div class="risk-badge">
           <span class="risk-badge-label">Confidence</span>
-          <span class="risk-badge-value" :class="confidenceClass">
+          <span class="risk-badge-value" :class="confidenceClass" data-testid="confidence-badge">
             {{ store.contentAnalysis?.overallConfidence || 'N/A' }}
           </span>
         </div>
@@ -70,12 +70,7 @@
             <span class="setting-description">Show alerts for suspicious content</span>
           </div>
           <label class="toggle">
-            <input
-              id="display-warnings-setting"
-              type="checkbox"
-              :checked="store.displayWarnings"
-              @change="store.toggleDisplayWarnings"
-            />
+            <input id="display-warnings-setting" type="checkbox" v-model="store.displayWarnings" />
             <span class="toggle-slider"></span>
           </label>
         </div>
