@@ -11,6 +11,8 @@ import { setupUGCDetection } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
 import UGCThreatIcon from './components/UGCThreatIcon.vue'
 import type { DomainAnalysis, ContentAnalysis } from './store'
+import { AnalysisStatus } from './constants/analysisStatus'
+import { RiskLevel } from './constants/riskLevels'
 
 const UGC_ANALYSIS_PROMPT = `
 You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.
@@ -166,16 +168,15 @@ Output: {
 
 Your response must be valid JSON that can be parsed by JSON.parse(). Ensure proper escaping of any characters within string fields. No additional text or formatting allowed.`
 
-type Risk = 'HIGH' | 'MEDIUM' | 'LOW'
-export type PhishingAnalysis = {
+type PhishingAnalysis = {
   title: string
   violations: {
     rule: string
-    severity: Risk
+    severity: RiskLevel
     explanation: string
   }[]
-  overallRiskScore: Risk
-  overallConfidence: Risk
+  overallRiskScore: RiskLevel
+  overallConfidence: RiskLevel
   isSafe: boolean
   recommendation: string
 }
@@ -195,7 +196,6 @@ function showPhishingAlert(data: any) {
 
   createApp(PhishingAlert, { ...data }).mount(container)
   document.body.appendChild(shadowHost)
-  sendAnalysisToBackground({ content: data })
 }
 
 function showUGCThreatAlert(analysis: PhishingAnalysis) {
@@ -215,15 +215,9 @@ function showUGCThreatAlert(analysis: PhishingAnalysis) {
   const app = createApp(PhishingAlert, analysis)
   app.mount(container)
   document.body.appendChild(shadowHost)
-
-  sendAnalysisToBackground({ content: analysis })
 }
 
-function showUGCThreatIcon(
-  wrapper: HTMLElement,
-  severity: 'HIGH' | 'MEDIUM' | 'LOW',
-  analysis: any
-) {
+function showUGCThreatIcon(wrapper: HTMLElement, severity: RiskLevel, analysis: any) {
   const shadowHost = document.createElement('div')
   shadowHost.setAttribute('id', 'ugc-threat-icon-shadow-host')
   shadowHost.style.all = 'unset'
@@ -262,8 +256,8 @@ async function analyzeUGCElements(elements: any[], session: any) {
   const allThreats: PhishingAnalysis = {
     title: 'Suspicious Content Detected',
     violations: [],
-    overallRiskScore: 'LOW' as Risk,
-    overallConfidence: 'HIGH' as Risk,
+    overallRiskScore: 'LOW' as RiskLevel,
+    overallConfidence: 'HIGH' as RiskLevel,
     isSafe: true,
     recommendation: 'No suspicious user-generated content detected.',
   }
@@ -271,6 +265,7 @@ async function analyzeUGCElements(elements: any[], session: any) {
   let hasThreats = false
 
   for (const ugc of elements) {
+    sendAnalysisToBackground({ content: allThreats, status: 'STARTING_CONTENT_ANALYSIS' })
     try {
       const promptText = ugc.content
       console.log('UGC analysis prompt text:', promptText)
@@ -283,23 +278,23 @@ async function analyzeUGCElements(elements: any[], session: any) {
         allThreats.violations.push(...analysis.violations)
 
         // Update overall risk score
-        if (analysis.overallRiskScore === 'HIGH') {
-          allThreats.overallRiskScore = 'HIGH'
+        if (analysis.overallRiskScore === RiskLevel.HIGH) {
+          allThreats.overallRiskScore = RiskLevel.HIGH
         } else if (
-          analysis.overallRiskScore === 'MEDIUM' &&
-          allThreats.overallRiskScore !== 'HIGH'
+          analysis.overallRiskScore === RiskLevel.MEDIUM &&
+          allThreats.overallRiskScore !== RiskLevel.HIGH
         ) {
-          allThreats.overallRiskScore = 'MEDIUM'
+          allThreats.overallRiskScore = RiskLevel.MEDIUM
         }
 
         // Update confidence score
-        if (analysis.overallConfidence === 'LOW') {
-          allThreats.overallConfidence = 'LOW'
+        if (analysis.overallConfidence === RiskLevel.LOW) {
+          allThreats.overallConfidence = RiskLevel.LOW
         } else if (
-          analysis.overallConfidence === 'MEDIUM' &&
-          allThreats.overallConfidence === 'HIGH'
+          analysis.overallConfidence === RiskLevel.MEDIUM &&
+          allThreats.overallConfidence === RiskLevel.HIGH
         ) {
-          allThreats.overallConfidence = 'MEDIUM'
+          allThreats.overallConfidence = RiskLevel.MEDIUM
         }
 
         highlightUGCThreats(ugc.container, analysis.overallRiskScore)
@@ -314,7 +309,7 @@ async function analyzeUGCElements(elements: any[], session: any) {
   if (hasThreats) {
     allThreats.isSafe = false
     allThreats.recommendation = 'Suspicious user-generated content detected. Review with caution.'
-    sendAnalysisToBackground({ content: allThreats })
+    sendAnalysisToBackground({ content: allThreats, status: 'CONTENT_ANALYSIS_FINISHED' })
   }
 
   return allThreats
@@ -343,29 +338,17 @@ async function handleUGCDetection(event: CustomEvent) {
   }
 }
 
-// Add these functions at the top level
 function sendAnalysisToBackground(analysis: {
   domain?: DomainAnalysis
   content?: ContentAnalysis
+  status?: string
 }) {
-  // Map PhishingAnalysis to ContentAnalysis
-  const contentAnalysis = analysis.content
-    ? {
-        overallRiskScore: analysis.content.overallRiskScore,
-        overallConfidence: analysis.content.overallConfidence,
-        violations: analysis.content.violations.map((v) => ({
-          rule: v.rule,
-          severity: v.severity,
-          explanation: v.explanation,
-        })),
-      }
-    : undefined
-
   const message = {
     type: 'UPDATE_ANALYSIS',
     payload: {
       domainAnalysis: analysis.domain,
-      contentAnalysis: contentAnalysis,
+      contentAnalysis: analysis.content,
+      status: analysis.status,
     },
   }
   console.log('Sending message to background:', message)
@@ -375,9 +358,13 @@ function sendAnalysisToBackground(analysis: {
 // Main execution
 ;(async () => {
   const domain = location.hostname
+  sendAnalysisToBackground({ status: AnalysisStatus.STARTING_DOMAIN_ANALYSIS })
   console.log('Analyzing domain...')
   const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce, ...news])
-  sendAnalysisToBackground({ domain: analysisResult })
+  sendAnalysisToBackground({
+    domain: analysisResult,
+    status: AnalysisStatus.STARTING_CONTENT_ANALYSIS,
+  })
 
   if (analysisResult.isSuspicious) {
     console.log('Domain is suspicious. Analyzing content...')
@@ -417,6 +404,13 @@ ${extractWebsiteInfo(document)}
       phishingAnalysis = JSON.parse(promptResult)
     } catch (e) {
       console.error('Error parsing website content analysis', e)
+    }
+
+    if (phishingAnalysis) {
+      sendAnalysisToBackground({
+        content: phishingAnalysis,
+        status: AnalysisStatus.ANALYSIS_FINISHED,
+      })
     }
 
     if (phishingAnalysis?.isSafe === false) {

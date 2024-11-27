@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { AnalysisStatus } from '../constants/analysisStatus'
+import { RiskLevel } from '../constants/riskLevels'
 
 export interface DomainAnalysis {
   isSuspicious: boolean
@@ -6,13 +8,20 @@ export interface DomainAnalysis {
 }
 
 export interface ContentAnalysis {
-  overallRiskScore: 'HIGH' | 'MEDIUM' | 'LOW'
-  overallConfidence: 'HIGH' | 'MEDIUM' | 'LOW'
+  overallRiskScore: RiskLevel
+  overallConfidence: RiskLevel
   violations: Array<{
     rule: string
-    severity: string
+    severity: RiskLevel
     explanation: string
   }>
+}
+
+export interface MainState {
+  displayWarnings: boolean
+  domainAnalysis: DomainAnalysis | null
+  contentAnalysis: ContentAnalysis | null
+  status: AnalysisStatus | null
 }
 
 export const useMainStore = defineStore('main', {
@@ -20,6 +29,7 @@ export const useMainStore = defineStore('main', {
     displayWarnings: true,
     domainAnalysis: null as DomainAnalysis | null,
     contentAnalysis: null as ContentAnalysis | null,
+    status: null as AnalysisStatus | null,
   }),
 
   actions: {
@@ -27,7 +37,7 @@ export const useMainStore = defineStore('main', {
       await this.loadSettings()
 
       // Listen for storage changes
-      chrome.storage.onChanged.addListener((changes) => {
+      chrome.storage.local.onChanged.addListener((changes) => {
         console.log('Storage changed:', changes)
         for (const [key, { newValue }] of Object.entries(changes)) {
           if (key === 'domainAnalysis') {
@@ -36,6 +46,8 @@ export const useMainStore = defineStore('main', {
             this.contentAnalysis = newValue
           } else if (key === 'displayWarnings') {
             this.displayWarnings = newValue
+          } else if (key === 'status') {
+            this.status = newValue
           }
         }
       })
@@ -47,12 +59,14 @@ export const useMainStore = defineStore('main', {
           'displayWarnings',
           'domainAnalysis',
           'contentAnalysis',
+          'status',
         ])
 
         // Set defaults if data is empty
         this.displayWarnings = data.displayWarnings ?? true
         this.domainAnalysis = data.domainAnalysis ?? null
         this.contentAnalysis = data.contentAnalysis ?? null
+        this.status = data.status ?? null
 
         console.log('Loaded settings:', data)
       } catch (error) {
@@ -61,6 +75,7 @@ export const useMainStore = defineStore('main', {
         this.displayWarnings = true
         this.domainAnalysis = null
         this.contentAnalysis = null
+        this.status = null
       }
     },
 
@@ -69,6 +84,7 @@ export const useMainStore = defineStore('main', {
         displayWarnings: this.displayWarnings,
         domainAnalysis: this.domainAnalysis,
         contentAnalysis: this.contentAnalysis,
+        status: this.status,
       })
     },
 
