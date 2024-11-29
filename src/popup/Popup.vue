@@ -7,7 +7,10 @@
     </div>
 
     <!-- Analysis Status -->
-    <div v-if="store.status === AnalysisStatus.STARTING_DOMAIN_ANALYSIS" class="status-section">
+    <div
+      v-if="store.status === AnalysisStatus.STARTING_DOMAIN_ANALYSIS"
+      :class="['analysis-section', 'loading']"
+    >
       <div class="status-indicator">
         <div class="loading-spinner"></div>
         <span>Starting security analysis...</span>
@@ -20,22 +23,24 @@
         store.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS ||
         store.status === AnalysisStatus.ANALYSIS_FINISHED
       "
-      class="analysis-section"
+      :class="['analysis-section', domainStatusClass]"
     >
       <h2>Domain Analysis</h2>
-      <div class="risk-badge">
-        <span class="risk-badge-label">Status</span>
-        <span class="risk-badge-value" :class="domainStatusClass" data-testid="domain-status-badge">
-          {{ domainStatus }}
-        </span>
+      <div class="result">
+        <h3>Status</h3>
+        <span>{{ domainStatus.toUpperCase() }}</span>
       </div>
-      <p v-if="store.domainAnalysis?.legitimateDomain" class="analysis-detail">
-        Similar to: {{ store.domainAnalysis.legitimateDomain }}
-      </p>
+      <div class="result" v-if="store.domainAnalysis?.legitimateDomain">
+        <h3>Similar to</h3>
+        <span>{{ store.domainAnalysis.legitimateDomain }}</span>
+      </div>
     </div>
 
     <!-- Content Analysis Loading -->
-    <div v-if="store.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS" class="status-section">
+    <div
+      v-if="store.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS"
+      :class="['analysis-section', 'loading']"
+    >
       <div class="status-indicator">
         <div class="loading-spinner"></div>
         <span>Analyzing page content...</span>
@@ -43,24 +48,22 @@
     </div>
 
     <!-- Content Analysis Results -->
-    <div v-if="store.status === AnalysisStatus.ANALYSIS_FINISHED" class="analysis-section">
+    <div
+      v-if="store.status === AnalysisStatus.ANALYSIS_FINISHED"
+      :class="['analysis-section', contentRiskClass]"
+    >
       <h2>Content Analysis</h2>
-      <div class="risk-section">
-        <div class="risk-badge">
-          <span class="risk-badge-label">Risk Level</span>
-          <span class="risk-badge-value" :class="contentRiskClass" data-testid="content-risk-badge">
-            {{ store.contentAnalysis?.overallRiskScore || 'Not analyzed' }}
-          </span>
-        </div>
-        <div class="risk-badge">
-          <span class="risk-badge-label">Confidence</span>
-          <span class="risk-badge-value" :class="confidenceClass" data-testid="confidence-badge">
-            {{ store.contentAnalysis?.overallConfidence || 'N/A' }}
-          </span>
-        </div>
+      <div class="result">
+        <h3>Risk Level</h3>
+        <span>{{ store.contentAnalysis?.overallRiskScore || 'Not analyzed' }}</span>
+      </div>
+      <div class="result">
+        <h3>Confidence</h3>
+        <span>{{ store.contentAnalysis?.overallConfidence || 'N/A' }}</span>
       </div>
     </div>
 
+    <!-- Preferences -->
     <div class="settings-section">
       <h2>Preferences</h2>
       <div class="settings-group">
@@ -115,14 +118,10 @@ const contentRiskClass = computed(() => {
   if (!store.contentAnalysis?.overallRiskScore) return 'severity-low'
   return `severity-${store.contentAnalysis.overallRiskScore.toLowerCase()}`
 })
-
-const confidenceClass = computed(() => {
-  if (!store.contentAnalysis?.overallConfidence) return 'severity-low'
-  return `severity-${store.contentAnalysis.overallConfidence.toLowerCase()}`
-})
 </script>
 
 <style>
+/* Base Styles */
 body {
   margin: 0;
 }
@@ -135,11 +134,10 @@ body {
   background: #ffffff;
 }
 
+/* Header Styles */
 .popup-header {
-  background: #1f2937;
-  color: white;
-  padding: 16px 20px;
-  margin: -20px -20px 24px -20px;
+  color: #1f2937;
+  margin-bottom: 30px;
 }
 
 .popup-header-content {
@@ -149,24 +147,53 @@ body {
 }
 
 .popup-header h1 {
-  font-size: 18px;
+  font-size: 24px;
   margin: 0;
   font-weight: 600;
 }
 
+/* Typography */
+h2 {
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+h3 {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Analysis Sections */
+.analysis-section {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.result span {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Settings Section */
 .settings-section {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
-}
-
-h2 {
-  color: #374151;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 12px 0;
 }
 
 .settings-group {
@@ -187,15 +214,16 @@ h2 {
 }
 
 .setting-info label {
+  font-size: 14px;
   display: block;
   font-weight: 500;
-  color: #374151;
+  color: #1f2937;
   margin-bottom: 2px;
 }
 
 .setting-description {
   font-size: 12px;
-  color: #6b7280;
+  color: #4b5563;
 }
 
 /* Toggle Switch */
@@ -219,7 +247,7 @@ h2 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #e5e7eb;
+  background-color: #9ca3af;
   transition: 0.2s;
   border-radius: 24px;
 }
@@ -244,139 +272,7 @@ input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .popup-header {
-    background: #111827;
-  }
-
-  .settings-section {
-    background: #1f2937;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  h2 {
-    color: #f3f4f6;
-  }
-
-  .setting-info label {
-    color: #f3f4f6;
-  }
-
-  .setting-description {
-    color: #9ca3af;
-  }
-
-  .toggle-slider {
-    background-color: #374151;
-  }
-
-  .toggle-slider:before {
-    background-color: #d1d5db;
-  }
-
-  input:checked + .toggle-slider {
-    background-color: #6366f1;
-  }
-}
-
-.analysis-section {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.risk-section {
-  display: flex;
-  gap: 16px;
-}
-
-.risk-badge {
-  flex: 1;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.risk-badge-label {
-  display: block;
-  color: #4b5563;
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-.risk-badge-value {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.severity-high {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-}
-
-.severity-medium {
-  background: rgba(234, 88, 12, 0.1);
-  color: #ea580c;
-}
-
-.severity-low {
-  background: rgba(22, 163, 74, 0.1);
-  color: #16a34a;
-}
-
-.analysis-detail {
-  margin: 12px 0 0 0;
-  font-size: 13px;
-  color: #4b5563;
-}
-
-/* Dark mode styles */
-@media (prefers-color-scheme: dark) {
-  .popup {
-    background: #1a1b1e;
-    color: #f3f4f6;
-  }
-
-  .popup-header {
-    color: #1f2937;
-    background: white;
-  }
-
-  h2 {
-    color: #f3f4f6;
-  }
-
-  .analysis-section,
-  .risk-badge {
-    background: #1a1b1e;
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .risk-badge-label {
-    color: #9ca3af;
-  }
-
-  .analysis-detail {
-    color: #9ca3af;
-  }
-}
-
-/* Add these new styles to your existing CSS */
-.status-section {
-  padding: 16px;
-  margin-bottom: 16px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
+/* Loading States */
 .status-indicator {
   display: flex;
   align-items: center;
@@ -399,11 +295,62 @@ input:checked + .toggle-slider:before {
   }
 }
 
-/* Dark mode support */
+/* Severity Indicators */
+.severity-high {
+  background: rgba(220, 38, 38, 0.2);
+  color: #dc2626;
+}
+
+.severity-medium {
+  background: rgba(234, 88, 12, 0.2);
+  color: #ea580c;
+}
+
+.severity-low {
+  background: rgba(22, 163, 74, 0.2);
+  color: #16a34a;
+}
+
+/* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
-  .status-section {
+  .popup {
+    background: #1a1b1e;
+    color: #f3f4f6;
+  }
+
+  .popup-header {
+    color: #f3f4f6;
+  }
+
+  h2,
+  h3 {
+    color: #f3f4f6;
+  }
+
+  .analysis-section {
     background: #1a1b1e;
     border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .settings-section {
+    background: #1f2937;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .setting-info label {
+    color: #f3f4f6;
+  }
+
+  .setting-description {
+    color: #9ca3af;
+  }
+
+  .toggle-slider {
+    background-color: #6b7280;
+  }
+
+  .toggle-slider:before {
+    background-color: #f3f4f6;
   }
 
   .status-indicator {
@@ -413,6 +360,22 @@ input:checked + .toggle-slider:before {
   .loading-spinner {
     border-color: #374151;
     border-top-color: #6366f1;
+  }
+
+  /* Dark mode severity indicators */
+  .severity-high {
+    background: rgba(220, 38, 38, 0.15);
+    color: #ef4444;
+  }
+
+  .severity-medium {
+    background: rgba(234, 88, 12, 0.15);
+    color: #fb923c;
+  }
+
+  .severity-low {
+    background: rgba(22, 163, 74, 0.15);
+    color: #4ade80;
   }
 }
 </style>
