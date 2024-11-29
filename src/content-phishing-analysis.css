@@ -6,6 +6,10 @@
   --color-danger: #dc2626;
   --color-warning: #ea580c;
   --color-success: #16a34a;
+  --color-neutral: #64748b;
+  --color-neutral-strong: #475569;  /* For HIGH confidence */
+  --color-neutral-medium: #64748b;  /* For MEDIUM confidence */
+  --color-neutral-light: #94a3b8;   /* For LOW confidence */
   /* Light Theme */
   --light-bg: #ffffff;
   --light-text: #1f2937;
@@ -30,6 +34,13 @@
   --risk-high: var(--color-danger);
   --risk-medium: var(--color-warning);
   --risk-low: var(--color-success);
+  /* Confidence Colors */
+  --color-neutral-strong: #3b82f6;  /* Bright blue */
+  --color-neutral-medium: #60a5fa;  /* Medium blue */
+  --color-neutral-light: #93c5fd;   /* Light blue */
+  --neutral-high-bg: rgba(59, 130, 246, 0.15);
+  --neutral-medium-bg: rgba(96, 165, 250, 0.15);
+  --neutral-low-bg: rgba(147, 197, 253, 0.15);
   /* Alert Colors */
   --alert-bg: var(--bg-primary);
   --alert-text: var(--text-primary);
@@ -88,8 +99,7 @@
 
 /* Alert Header */
 .phishing-alert-header {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  color: var(--text-primary);
   padding: 16px 20px;
   display: flex;
   justify-content: space-between;
@@ -100,8 +110,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
+}
+
+.phishing-alert-content h2 {
+  font-size: 16px;
 }
 
 .phishing-alert-header-icon {
@@ -286,6 +300,21 @@
   color: var(--color-success);
 }
 
+.severity-neutral-high {
+  background: var(--neutral-high-bg);
+  color: var(--color-neutral-strong);
+}
+
+.severity-neutral-medium {
+  background: var(--neutral-medium-bg);
+  color: var(--color-neutral-medium);
+}
+
+.severity-neutral-low {
+  background: var(--neutral-low-bg);
+  color: var(--color-neutral-light);
+}
+
 /* Animations */
 @keyframes fade-in {
   from { opacity: 0; }
@@ -367,4 +396,150 @@
 
 .threat-icon.severity-low {
   background: var(--risk-low);
+}
+
+/* Analysis Sections */
+.analysis-section {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Risk Level Backgrounds */
+.analysis-section.severity-high {
+  background: var(--risk-high-bg);
+  border-color: var(--risk-high-border);
+}
+
+.analysis-section.severity-medium {
+  background: var(--risk-medium-bg);
+  border-color: var(--risk-medium-border);
+}
+
+.analysis-section.severity-low {
+  background: var(--risk-low-bg);
+  border-color: var(--risk-low-border);
+}
+
+/* Confidence Level Backgrounds */
+.analysis-section.severity-neutral-high {
+  background: var(--neutral-high-bg);
+  border-color: var(--color-neutral-strong);
+}
+
+.analysis-section.severity-neutral-medium {
+  background: var(--neutral-medium-bg);
+  border-color: var(--color-neutral-medium);
+}
+
+.analysis-section.severity-neutral-low {
+  background: var(--neutral-low-bg);
+  border-color: var(--color-neutral-light);
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .analysis-section {
+    background: color-mix(in srgb, var(--bg-primary) 95%, var(--text-primary));
+  }
+  
+  .analysis-section.severity-high {
+    background: color-mix(in srgb, var(--risk-high-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-medium {
+    background: color-mix(in srgb, var(--risk-medium-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-low {
+    background: color-mix(in srgb, var(--risk-low-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-neutral-high {
+    background: color-mix(in srgb, var(--neutral-high-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-neutral-medium {
+    background: color-mix(in srgb, var(--neutral-medium-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-neutral-low {
+    background: color-mix(in srgb, var(--neutral-low-bg) 85%, var(--bg-primary));
+  }
+}
+
+.analysis-section h2 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.analysis-section h3 {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.result span {
+  margin: 0;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Violation Items */
+.violation-item {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.violation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.violation-header span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.violation-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.violation-severity {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.violation-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Recommendation Text */
+.recommendation-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
 }

@@ -1,12 +1,12 @@
 <template>
   <div v-if="isVisible" class="phishing-alert-overlay" @click.self="handleOverlayClick">
     <div class="phishing-alert-container">
+      <!-- Header Section -->
       <div class="phishing-alert-header">
         <div class="phishing-alert-header-content">
           <svg
+            class="phishing-alert-header-icon"
             xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -20,7 +20,7 @@
           </svg>
           <span>{{ title }}</span>
         </div>
-        <button class="phishing-alert-close" @click="handleClose" aria-label="Close alert">
+        <button class="phishing-alert-close" @click="handleClose">
           <svg
             class="phishing-alert-close-icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -31,40 +31,50 @@
           </svg>
         </button>
       </div>
+
+      <!-- Content Section -->
       <div class="phishing-alert-content">
-        <div class="phishing-risk-section">
-          <div class="risk-badge">
-            <span class="risk-badge-label">Risk Level</span>
-            <span class="risk-badge-value" :class="['severity-' + overallRiskScore.toLowerCase()]">
+        <!-- Risk Analysis Section -->
+        <div class="analysis-section" :class="['severity-' + overallRiskScore.toLowerCase()]">
+          <h2>Risk Analysis</h2>
+          <div class="result">
+            <h3>Risk Level</h3>
+            <span>
               {{ overallRiskScore }}
             </span>
           </div>
-          <div class="risk-badge">
-            <span class="risk-badge-label">Confidence</span>
-            <span class="risk-badge-value" :class="['severity-' + overallConfidence.toLowerCase()]">
+          <div class="result">
+            <h3>Confidence</h3>
+            <span>
               {{ overallConfidence }}
             </span>
           </div>
         </div>
 
-        <div class="violations-list">
-          <h3>Detected Security Risks</h3>
-          <div v-for="violation in violations" :key="violation.rule" class="violation-item">
-            <div class="violation-header">
-              <span class="violation-name">{{ violation.rule }}</span>
-              <span :class="['violation-severity', 'severity-' + violation.severity.toLowerCase()]">
-                {{ violation.severity }}
-              </span>
-            </div>
-            <p class="violation-description">{{ violation.explanation }}</p>
+        <!-- Violations Section -->
+        <h2>Security Risks</h2>
+        <div
+          v-for="violation in violations"
+          :key="violation.rule"
+          class="analysis-section"
+          :class="['severity-' + violation.severity.toLowerCase()]"
+        >
+          <div class="violation-header">
+            <h3 class="violation-name">{{ violation.rule }}</h3>
+            <span>
+              {{ violation.severity }}
+            </span>
           </div>
+          <p class="violation-description">{{ violation.explanation }}</p>
         </div>
 
-        <div v-if="recommendation" class="recommendation">
-          <h3>Recommendation</h3>
-          <p>{{ recommendation }}</p>
+        <!-- Recommendation Section -->
+        <div v-if="recommendation" class="analysis-section">
+          <h2>Recommendation</h2>
+          <p class="recommendation-text">{{ recommendation }}</p>
         </div>
 
+        <!-- Actions Section -->
         <div class="phishing-actions">
           <button class="phishing-btn phishing-btn-back" @click="handleBack">Leave Site</button>
           <button class="phishing-btn phishing-btn-proceed" @click="handleProceed">
