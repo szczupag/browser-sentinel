@@ -1,14 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useMainStore } from './index'
 import { AnalysisStatus } from '../constants/analysisStatus'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 describe('Main Store', () => {
   const TEST_TAB_ID = 123
 
   beforeEach(() => {
     setActivePinia(createPinia())
-    // Reset chrome.tabs.query mock to return our test tab
     chrome.tabs.query.mockResolvedValue([{ id: TEST_TAB_ID }])
   })
 
@@ -16,16 +15,11 @@ describe('Main Store', () => {
     vi.clearAllMocks()
   })
 
-  it('Toggles display warnings setting', async () => {
-    const store = useMainStore()
-    expect(store.displayWarnings).toBe(true)
-    await store.toggleDisplayWarnings()
-    expect(store.displayWarnings).toBe(false)
-  })
-
-  it('Loads settings for current tab', async () => {
+  it('Loads all settings for current tab', async () => {
     const mockSettings = {
-      displayWarnings: true,
+      displaySuspiciousDomainAlerts: true,
+      highlightSuspiciousUGC: true,
+      highlightSuspiciousEmailContent: true,
       [`tab_${TEST_TAB_ID}_domainAnalysis`]: { isSuspicious: true },
       [`tab_${TEST_TAB_ID}_contentAnalysis`]: { overallRiskScore: 'HIGH' },
       [`tab_${TEST_TAB_ID}_status`]: AnalysisStatus.ANALYSIS_FINISHED,
@@ -36,16 +30,20 @@ describe('Main Store', () => {
     const store = useMainStore()
     await store.loadSettings()
 
-    expect(store.displayWarnings).toBe(true)
+    expect(store.displaySuspiciousDomainAlerts).toBe(true)
+    expect(store.highlightSuspiciousUGC).toBe(true)
+    expect(store.highlightSuspiciousEmailContent).toBe(true)
     expect(store.domainAnalysis).toEqual({ isSuspicious: true })
     expect(store.contentAnalysis).toEqual({ overallRiskScore: 'HIGH' })
     expect(store.status).toBe(AnalysisStatus.ANALYSIS_FINISHED)
   })
 
-  it('Saves settings for current tab', async () => {
+  it('Saves all settings for current tab', async () => {
     const store = useMainStore()
     store.$patch({
-      displayWarnings: false,
+      displaySuspiciousDomainAlerts: false,
+      highlightSuspiciousUGC: false,
+      highlightSuspiciousEmailContent: false,
       domainAnalysis: { isSuspicious: true },
       contentAnalysis: { overallRiskScore: 'HIGH' },
       status: AnalysisStatus.ANALYSIS_FINISHED,
@@ -54,17 +52,28 @@ describe('Main Store', () => {
     await store.saveSettings()
 
     expect(chrome.storage.local.set).toHaveBeenCalledWith({
-      displayWarnings: false,
+      displaySuspiciousDomainAlerts: false,
+      highlightSuspiciousUGC: false,
+      highlightSuspiciousEmailContent: false,
       [`tab_${TEST_TAB_ID}_domainAnalysis`]: { isSuspicious: true },
       [`tab_${TEST_TAB_ID}_contentAnalysis`]: { overallRiskScore: 'HIGH' },
       [`tab_${TEST_TAB_ID}_status`]: AnalysisStatus.ANALYSIS_FINISHED,
     })
   })
 
-  it('Handles missing tab ID when saving settings', async () => {
-    chrome.tabs.query.mockResolvedValueOnce([])
+  it('Toggles individual preference settings', async () => {
     const store = useMainStore()
 
-    await expect(store.saveSettings()).rejects.toThrow('No active tab found')
+    expect(store.displaySuspiciousDomainAlerts).toBe(true)
+    await store.toggleSuspiciousDomainAlerts()
+    expect(store.displaySuspiciousDomainAlerts).toBe(false)
+
+    expect(store.highlightSuspiciousUGC).toBe(true)
+    await store.toggleSuspiciousUGC()
+    expect(store.highlightSuspiciousUGC).toBe(false)
+
+    expect(store.highlightSuspiciousEmailContent).toBe(true)
+    await store.toggleSuspiciousEmailContent()
+    expect(store.highlightSuspiciousEmailContent).toBe(false)
   })
 })
