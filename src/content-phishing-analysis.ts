@@ -312,10 +312,8 @@ async function analyzeUGCElements(elements: any[], session: any) {
   if (hasThreats) {
     allThreats.isSafe = false
     allThreats.recommendation = 'Suspicious user-generated content detected. Review with caution.'
-    sendAnalysisToBackground({ content: allThreats })
   }
-
-  sendAnalysisToBackground({ status: AnalysisStatus.ANALYSIS_FINISHED })
+  sendAnalysisToBackground({ status: AnalysisStatus.ANALYSIS_FINISHED, content: allThreats })
 
   return allThreats
 }
