@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { handleTabRemoved } from './background.ts'
+import { handleTabRemoved, updateExtensionIcon } from './background'
+import { AnalysisStatus } from './constants/analysisStatus'
+import { RiskLevel } from './constants/riskLevels'
+import { IconType } from './constants/iconType'
 
 describe('Background Script', () => {
   beforeEach(() => {
@@ -48,5 +51,86 @@ describe('Background Script', () => {
     // Verify other tab's data wasn't removed
     const [[keysToRemove]] = chrome.storage.local.remove.mock.calls
     expect(keysToRemove).not.toContain('tab_456_domainAnalysis')
+  })
+
+  describe('Icon Updates', () => {
+    beforeEach(() => {
+      chrome.action.setIcon = vi.fn().mockImplementation((options, callback) => {
+        callback?.()
+        return Promise.resolve()
+      })
+    })
+
+    it('Sets analyzing icon when starting domain analysis', async () => {
+      await updateExtensionIcon(
+        {
+          status: AnalysisStatus.STARTING_DOMAIN_ANALYSIS,
+        },
+        123
+      )
+
+      expect(chrome.action.setIcon).toHaveBeenCalledWith(
+        {
+          path: {
+            '16': `/icons/16/BrowserSentinel-${IconType.ANALYZING}.png`,
+            '32': `/icons/32/BrowserSentinel-${IconType.ANALYZING}.png`,
+            '48': `/icons/48/BrowserSentinel-${IconType.ANALYZING}.png`,
+            '128': `/icons/128/BrowserSentinel-${IconType.ANALYZING}.png`,
+          },
+          tabId: 123,
+        },
+        expect.any(Function)
+      )
+    })
+
+    it('Sets suspicious icon when domain is suspicious during content analysis', async () => {
+      await updateExtensionIcon(
+        {
+          status: AnalysisStatus.STARTING_CONTENT_ANALYSIS,
+          domainAnalysis: {
+            isSuspicious: true,
+          },
+        },
+        123
+      )
+
+      expect(chrome.action.setIcon).toHaveBeenCalledWith(
+        {
+          path: {
+            '16': `/icons/16/BrowserSentinel-${IconType.SUSPICIOUS}.png`,
+            '32': `/icons/32/BrowserSentinel-${IconType.SUSPICIOUS}.png`,
+            '48': `/icons/48/BrowserSentinel-${IconType.SUSPICIOUS}.png`,
+            '128': `/icons/128/BrowserSentinel-${IconType.SUSPICIOUS}.png`,
+          },
+          tabId: 123,
+        },
+        expect.any(Function)
+      )
+    })
+
+    it('Sets safe icon when analysis is finished with low risk', async () => {
+      await updateExtensionIcon(
+        {
+          status: AnalysisStatus.ANALYSIS_FINISHED,
+          contentAnalysis: {
+            overallRiskScore: RiskLevel.LOW,
+          },
+        },
+        123
+      )
+
+      expect(chrome.action.setIcon).toHaveBeenCalledWith(
+        {
+          path: {
+            '16': `/icons/16/BrowserSentinel-${IconType.SAFE}.png`,
+            '32': `/icons/32/BrowserSentinel-${IconType.SAFE}.png`,
+            '48': `/icons/48/BrowserSentinel-${IconType.SAFE}.png`,
+            '128': `/icons/128/BrowserSentinel-${IconType.SAFE}.png`,
+          },
+          tabId: 123,
+        },
+        expect.any(Function)
+      )
+    })
   })
 })
