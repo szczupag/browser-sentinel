@@ -1,4 +1,8 @@
 import '@inboxsdk/core/background.js'
+import { ContentAnalysis, DomainAnalysis } from './store'
+import { AnalysisStatus } from './constants/analysisStatus'
+import { RiskLevel } from './constants/riskLevels'
+import { IconType } from './constants/iconType'
 declare const ai: typeof window.ai
 
 console.log('Hello from the background script')
@@ -31,36 +35,73 @@ async function createOffscreenDocument() {
   }
 }
 
-// Handle messages from content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'UPDATE_ANALYSIS') {
-    const tabId = sender.tab?.id
-    if (!tabId) {
-      console.error('No tab ID found for message:', message)
-      return true
+// Update icon based on analysis
+async function updateExtensionIcon(
+  analysisUpdate: {
+    domainAnalysis?: DomainAnalysis
+    contentAnalysis?: ContentAnalysis
+    status: AnalysisStatus
+  },
+  tabId?: number
+) {
+  let iconType: IconType = IconType.DEFAULT
+  if (analysisUpdate.status === AnalysisStatus.STARTING_DOMAIN_ANALYSIS) {
+    iconType = IconType.ANALYZING
+  } else if (analysisUpdate.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS) {
+    if (analysisUpdate.domainAnalysis?.isSuspicious) {
+      iconType = IconType.SUSPICIOUS
+    } else {
+      iconType = IconType.ANALYZING
     }
-
-    const payload = {
-      [`tab_${tabId}_domainAnalysis`]: message.payload.domainAnalysis,
-      [`tab_${tabId}_contentAnalysis`]: message.payload.contentAnalysis,
-      [`tab_${tabId}_status`]: message.payload.status,
+  } else if (analysisUpdate.status === AnalysisStatus.ANALYSIS_FINISHED) {
+    if (analysisUpdate.contentAnalysis?.overallRiskScore === RiskLevel.HIGH) {
+      iconType = IconType.SUSPICIOUS
+    } else {
+      iconType = IconType.SAFE
     }
-
-    // Only update display warnings if it's included in the payload
-    if (message.payload.displayWarnings !== undefined) {
-      payload.displayWarnings = message.payload.displayWarnings
-    }
-
-    console.log('Setting storage with payload:', payload)
-    chrome.storage.local.set(payload, () => {
-      if (chrome.runtime.lastError) {
-        console.error('Storage error:', chrome.runtime.lastError)
-      } else {
-        console.log('Storage successfully updated')
-      }
-    })
   }
-  return true
+  await chrome.action.setIcon(
+    {
+      path: {
+        '16': `/icons/16/BrowserSentinel-${iconType}.png`,
+        '32': `/icons/32/BrowserSentinel-${iconType}.png`,
+        '48': `/icons/48/BrowserSentinel-${iconType}.png`,
+        '128': `/icons/128/BrowserSentinel-${iconType}.png`,
+      },
+      ...(tabId && { tabId }), // Only set tabId if provided
+    },
+    () => {
+      if (chrome.runtime.lastError) {
+        console.error('Failed to set icon:', chrome.runtime.lastError.message)
+      }
+    }
+  )
+}
+
+// Handle analysis updates from content script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'UPDATE_ANALYSIS' && sender.tab?.id) {
+    const analysisUpdate = message.payload
+    const tabId = sender.tab.id
+
+    // Store analysis using consistent key format
+    chrome.storage.local.set(
+      {
+        [`tab_${tabId}_domainAnalysis`]: analysisUpdate.domainAnalysis,
+        [`tab_${tabId}_contentAnalysis`]: analysisUpdate.contentAnalysis,
+        [`tab_${tabId}_status`]: analysisUpdate.status,
+      },
+      () => {
+        // Update icon for this tab
+        updateExtensionIcon(analysisUpdate, tabId)
+      }
+    )
+  }
+})
+
+// Clean up stored analyses when tabs are closed
+chrome.tabs.onRemoved.addListener((tabId) => {
+  handleTabRemoved(tabId).catch(console.error)
 })
 
 // Clean up tab data when tab is closed
@@ -85,11 +126,6 @@ export const handleTabRemoved = (tabId: number): Promise<void> => {
     })
   })
 }
-
-// Register the listener
-chrome.tabs.onRemoved.addListener((tabId) => {
-  handleTabRemoved(tabId).catch(console.error)
-})
 ;(async () => {
   await createOffscreenDocument()
 })()

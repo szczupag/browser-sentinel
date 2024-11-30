@@ -346,7 +346,7 @@ async function handleUGCDetection(event: CustomEvent) {
 function sendAnalysisToBackground(analysis: {
   domain?: DomainAnalysis
   content?: ContentAnalysis
-  status?: string
+  status?: AnalysisStatus
 }) {
   const message = {
     type: 'UPDATE_ANALYSIS',
