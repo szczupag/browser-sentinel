@@ -27,6 +27,9 @@ interface ChromeMock {
       removeListener: ReturnType<typeof vi.fn>
     }
   }
+  action: {
+    setIcon: ReturnType<typeof vi.fn>
+  }
 }
 
 const mockChromeApi: ChromeMock = {
@@ -55,6 +58,12 @@ const mockChromeApi: ChromeMock = {
       addListener: vi.fn(),
       removeListener: vi.fn(),
     },
+  },
+  action: {
+    setIcon: vi.fn((options, callback) => {
+      callback?.()
+      return Promise.resolve()
+    }),
   },
 }
 

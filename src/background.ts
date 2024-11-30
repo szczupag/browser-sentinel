@@ -35,8 +35,8 @@ async function createOffscreenDocument() {
   }
 }
 
-// Update icon based on analysis
-async function updateExtensionIcon(
+// Export the function for testing
+export async function updateExtensionIcon(
   analysisUpdate: {
     domainAnalysis?: DomainAnalysis
     contentAnalysis?: ContentAnalysis
@@ -54,13 +54,14 @@ async function updateExtensionIcon(
       iconType = IconType.ANALYZING
     }
   } else if (analysisUpdate.status === AnalysisStatus.ANALYSIS_FINISHED) {
-    if (analysisUpdate.contentAnalysis?.overallRiskScore === RiskLevel.HIGH) {
-      iconType = IconType.SUSPICIOUS
-    } else {
+    if (analysisUpdate.contentAnalysis?.overallRiskScore === RiskLevel.LOW) {
       iconType = IconType.SAFE
+    } else {
+      iconType = IconType.SUSPICIOUS
     }
   }
-  await chrome.action.setIcon(
+
+  return chrome.action.setIcon(
     {
       path: {
         '16': `/icons/16/BrowserSentinel-${iconType}.png`,
@@ -68,7 +69,7 @@ async function updateExtensionIcon(
         '48': `/icons/48/BrowserSentinel-${iconType}.png`,
         '128': `/icons/128/BrowserSentinel-${iconType}.png`,
       },
-      ...(tabId && { tabId }), // Only set tabId if provided
+      ...(tabId && { tabId }),
     },
     () => {
       if (chrome.runtime.lastError) {
