@@ -23,9 +23,59 @@ describe('Popup', () => {
     expect(wrapper.find('h1').text()).toBe('Browser Sentinel')
   })
 
-  it('Renders preferences section', () => {
+  it('Renders preferences section with correct labels', () => {
     expect(wrapper.find('.settings-section h2').text()).toBe('Preferences')
-    expect(wrapper.find('label[for="display-warnings-setting"]').text()).toBe('Display warnings')
+
+    const settingLabels = wrapper.findAll('.setting-info label')
+    expect(settingLabels[0].text()).toBe('Display Domain Warnings')
+    expect(settingLabels[1].text()).toBe('Highlight UGC Threats')
+    expect(settingLabels[2].text()).toBe('Display Email Analysis')
+  })
+
+  it('Renders preferences section with correct descriptions', () => {
+    const descriptions = wrapper.findAll('.setting-description')
+    expect(descriptions[0].text()).toBe(
+      'Get alerts for potentially malicious or suspicious domains while browsing.'
+    )
+    expect(descriptions[1].text()).toBe(
+      'Identify and flag risky user-generated content such as comments or messages.'
+    )
+    expect(descriptions[2].text()).toBe(
+      'Scan emails to detect and highlight potential threats or phishing attempts.'
+    )
+  })
+
+  it('Toggles domain alerts preference', async () => {
+    const checkbox = wrapper.find('#display-warnings-setting')
+    expect(store.displaySuspiciousDomainAlerts).toBe(true)
+
+    await checkbox.setValue(false)
+    expect(store.displaySuspiciousDomainAlerts).toBe(false)
+
+    await checkbox.setValue(true)
+    expect(store.displaySuspiciousDomainAlerts).toBe(true)
+  })
+
+  it('Toggles UGC highlights preference', async () => {
+    const checkbox = wrapper.find('#highlight-ugc-setting')
+    expect(store.highlightSuspiciousUGC).toBe(true)
+
+    await checkbox.setValue(false)
+    expect(store.highlightSuspiciousUGC).toBe(false)
+
+    await checkbox.setValue(true)
+    expect(store.highlightSuspiciousUGC).toBe(true)
+  })
+
+  it('Toggles email analysis preference', async () => {
+    const checkbox = wrapper.find('#highlight-email-setting')
+    expect(store.highlightSuspiciousEmailContent).toBe(true)
+
+    await checkbox.setValue(false)
+    expect(store.highlightSuspiciousEmailContent).toBe(false)
+
+    await checkbox.setValue(true)
+    expect(store.highlightSuspiciousEmailContent).toBe(true)
   })
 
   it('Shows starting analysis state', async () => {
@@ -114,19 +164,5 @@ describe('Popup', () => {
     await wrapper.vm.$nextTick()
 
     expect(contentSection.classes()).toContain('severity-medium')
-  })
-
-  it('Toggles display warnings setting', async () => {
-    const checkbox = wrapper.find('input[type="checkbox"]')
-
-    // Verify initial state
-    expect(store.displayWarnings).toBe(true)
-
-    // Trigger the change
-    await checkbox.setValue(false)
-    await wrapper.vm.$nextTick()
-
-    // Verify the change
-    expect(store.displayWarnings).toBe(false)
   })
 })

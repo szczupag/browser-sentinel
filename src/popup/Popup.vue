@@ -69,11 +69,49 @@
       <div class="settings-group">
         <div class="setting-item">
           <div class="setting-info">
-            <label for="display-warnings-setting">Display warnings</label>
-            <span class="setting-description">Show alerts for suspicious content</span>
+            <label for="display-warnings-setting">Display Domain Warnings</label>
+            <span class="setting-description">
+              Get alerts for potentially malicious or suspicious domains while browsing.
+            </span>
           </div>
           <label class="toggle">
-            <input id="display-warnings-setting" type="checkbox" v-model="store.displayWarnings" />
+            <input
+              id="display-warnings-setting"
+              type="checkbox"
+              v-model="store.displaySuspiciousDomainAlerts"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <label for="highlight-ugc-setting">Highlight UGC Threats</label>
+            <span class="setting-description">
+              Identify and flag risky user-generated content such as comments or messages.
+            </span>
+          </div>
+          <label class="toggle">
+            <input
+              id="highlight-ugc-setting"
+              type="checkbox"
+              v-model="store.highlightSuspiciousUGC"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <label for="highlight-email-setting">Display Email Analysis</label>
+            <span class="setting-description">
+              Scan emails to detect and highlight potential threats or phishing attempts.
+            </span>
+          </div>
+          <label class="toggle">
+            <input
+              id="highlight-email-setting"
+              type="checkbox"
+              v-model="store.highlightSuspiciousEmailContent"
+            />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -96,7 +134,9 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to initialize store:', error)
     store.$patch({
-      displayWarnings: true,
+      displaySuspiciousDomainAlerts: true,
+      highlightSuspiciousUGC: true,
+      highlightSuspiciousEmailContent: true,
       domainAnalysis: null,
       contentAnalysis: null,
       status: null,
@@ -230,8 +270,8 @@ h3 {
 .toggle {
   position: relative;
   display: inline-block;
-  width: 44px;
-  height: 24px;
+  width: 36px;
+  height: 20px;
 }
 
 .toggle input {
@@ -243,33 +283,34 @@ h3 {
 .toggle-slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #9ca3af;
-  transition: 0.2s;
-  border-radius: 24px;
+  inset: 0;
+  background-color: #e2e8f0;
+  transition: 0.3s;
+  border-radius: 20px;
 }
 
 .toggle-slider:before {
   position: absolute;
   content: '';
-  height: 20px;
-  width: 20px;
+  height: 16px;
+  width: 16px;
   left: 2px;
   bottom: 2px;
   background-color: white;
-  transition: 0.2s;
+  transition: 0.3s;
   border-radius: 50%;
 }
 
 input:checked + .toggle-slider {
-  background-color: #6366f1;
+  background-color: #b29bd4;
 }
 
 input:checked + .toggle-slider:before {
-  transform: translateX(20px);
+  transform: translateX(16px);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px #94a3b8;
 }
 
 /* Loading States */
@@ -347,6 +388,10 @@ input:checked + .toggle-slider:before {
 
   .toggle-slider {
     background-color: #6b7280;
+  }
+
+  input:checked + .toggle-slider {
+    background-color: #7655a8;
   }
 
   .toggle-slider:before {

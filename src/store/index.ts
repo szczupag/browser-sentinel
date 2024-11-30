@@ -18,77 +18,51 @@ export interface ContentAnalysis {
 }
 
 export interface MainState {
-  displayWarnings: boolean
+  displaySuspiciousDomainAlerts: boolean
+  highlightSuspiciousUGC: boolean
+  highlightSuspiciousEmailContent: boolean
   domainAnalysis: DomainAnalysis | null
   contentAnalysis: ContentAnalysis | null
   status: AnalysisStatus | null
 }
 
 export const useMainStore = defineStore('main', {
-  state: () => ({
-    displayWarnings: true,
-    domainAnalysis: null as DomainAnalysis | null,
-    contentAnalysis: null as ContentAnalysis | null,
-    status: null as AnalysisStatus | null,
+  state: (): MainState => ({
+    displaySuspiciousDomainAlerts: true,
+    highlightSuspiciousUGC: true,
+    highlightSuspiciousEmailContent: true,
+    domainAnalysis: null,
+    contentAnalysis: null,
+    status: null,
   }),
 
   actions: {
     async initialize() {
       await this.loadSettings()
-
-      // Listen for storage changes
-      chrome.storage.local.onChanged.addListener((changes) => {
-        console.log('Storage changed:', changes)
-
-        // Get current tab ID
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const currentTabId = tabs[0]?.id
-          if (!currentTabId) return
-
-          for (const [key, { newValue }] of Object.entries(changes)) {
-            if (key === 'displayWarnings') {
-              this.displayWarnings = newValue
-            } else if (key === `tab_${currentTabId}_domainAnalysis`) {
-              this.domainAnalysis = newValue
-            } else if (key === `tab_${currentTabId}_contentAnalysis`) {
-              this.contentAnalysis = newValue
-            } else if (key === `tab_${currentTabId}_status`) {
-              this.status = newValue
-            }
-          }
-        })
-      })
     },
 
     async loadSettings() {
-      try {
-        // Get current tab ID
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
-        const currentTabId = tabs[0]?.id
-        if (!currentTabId) throw new Error('No active tab found')
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+      const currentTabId = tabs[0]?.id
+      if (!currentTabId) throw new Error('No active tab found')
 
-        const data = await chrome.storage.local.get([
-          'displayWarnings',
-          `tab_${currentTabId}_domainAnalysis`,
-          `tab_${currentTabId}_contentAnalysis`,
-          `tab_${currentTabId}_status`,
-        ])
+      const settings = await chrome.storage.local.get([
+        'displaySuspiciousDomainAlerts',
+        'highlightSuspiciousUGC',
+        'highlightSuspiciousEmailContent',
+        `tab_${currentTabId}_domainAnalysis`,
+        `tab_${currentTabId}_contentAnalysis`,
+        `tab_${currentTabId}_status`,
+      ])
 
-        // Set defaults if data is empty
-        this.displayWarnings = data.displayWarnings ?? true
-        this.domainAnalysis = data[`tab_${currentTabId}_domainAnalysis`] ?? null
-        this.contentAnalysis = data[`tab_${currentTabId}_contentAnalysis`] ?? null
-        this.status = data[`tab_${currentTabId}_status`] ?? null
-
-        console.log('Loaded settings:', data)
-      } catch (error) {
-        console.error('Failed to load settings:', error)
-        // Set defaults on error
-        this.displayWarnings = true
-        this.domainAnalysis = null
-        this.contentAnalysis = null
-        this.status = null
-      }
+      this.$patch({
+        displaySuspiciousDomainAlerts: settings.displaySuspiciousDomainAlerts ?? true,
+        highlightSuspiciousUGC: settings.highlightSuspiciousUGC ?? true,
+        highlightSuspiciousEmailContent: settings.highlightSuspiciousEmailContent ?? true,
+        domainAnalysis: settings[`tab_${currentTabId}_domainAnalysis`] ?? null,
+        contentAnalysis: settings[`tab_${currentTabId}_contentAnalysis`] ?? null,
+        status: settings[`tab_${currentTabId}_status`] ?? null,
+      })
     },
 
     async saveSettings() {
@@ -97,15 +71,27 @@ export const useMainStore = defineStore('main', {
       if (!currentTabId) throw new Error('No active tab found')
 
       await chrome.storage.local.set({
-        displayWarnings: this.displayWarnings,
+        displaySuspiciousDomainAlerts: this.displaySuspiciousDomainAlerts,
+        highlightSuspiciousUGC: this.highlightSuspiciousUGC,
+        highlightSuspiciousEmailContent: this.highlightSuspiciousEmailContent,
         [`tab_${currentTabId}_domainAnalysis`]: this.domainAnalysis,
         [`tab_${currentTabId}_contentAnalysis`]: this.contentAnalysis,
         [`tab_${currentTabId}_status`]: this.status,
       })
     },
 
-    toggleDisplayWarnings() {
-      this.displayWarnings = !this.displayWarnings
+    toggleSuspiciousDomainAlerts() {
+      this.displaySuspiciousDomainAlerts = !this.displaySuspiciousDomainAlerts
+      this.saveSettings()
+    },
+
+    toggleSuspiciousUGC() {
+      this.highlightSuspiciousUGC = !this.highlightSuspiciousUGC
+      this.saveSettings()
+    },
+
+    toggleSuspiciousEmailContent() {
+      this.highlightSuspiciousEmailContent = !this.highlightSuspiciousEmailContent
       this.saveSettings()
     },
   },
