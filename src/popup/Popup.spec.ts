@@ -46,9 +46,10 @@ describe('Popup', () => {
       },
     })
 
-    expect(wrapper.find('.analysis-section h2').text()).toBe('Domain Analysis')
-    expect(wrapper.find('.risk-badge-value').text()).toBe('Suspicious')
-    expect(wrapper.find('.analysis-detail').text()).toBe('Similar to: example.com')
+    const section = wrapper.find('.analysis-section')
+    expect(section.find('h2').text()).toBe('Domain Analysis')
+    expect(section.find('.result span').text()).toBe('SUSPICIOUS')
+    expect(section.findAll('.result')[1].find('span').text()).toBe('example.com')
   })
 
   it('Shows both analyses when finished', async () => {
@@ -65,8 +66,9 @@ describe('Popup', () => {
 
     const sections = wrapper.findAll('.analysis-section')
     expect(sections).toHaveLength(2)
-    expect(sections[0].find('.risk-badge-value').text()).toBe('Safe')
-    expect(sections[1].find('.risk-badge-value').text()).toBe('LOW')
+    expect(sections[0].findAll('.result span')[0].text()).toBe('SAFE')
+    expect(sections[1].findAll('.result span')[0].text()).toBe('LOW')
+    expect(sections[1].findAll('.result span')[1].text()).toBe('HIGH')
   })
 
   it('Calculates correct domain status classes', async () => {
@@ -76,8 +78,8 @@ describe('Popup', () => {
     })
     await wrapper.vm.$nextTick()
 
-    const domainBadge = wrapper.find('[data-testid="domain-status-badge"]')
-    expect(domainBadge.classes()).toContain('severity-low')
+    const domainSection = wrapper.findAll('.analysis-section')[0]
+    expect(domainSection.classes()).toContain('severity-low')
 
     await store.$patch({
       domainAnalysis: { isSuspicious: true },
@@ -85,7 +87,7 @@ describe('Popup', () => {
     })
     await wrapper.vm.$nextTick()
 
-    expect(domainBadge.classes()).toContain('severity-high')
+    expect(domainSection.classes()).toContain('severity-high')
   })
 
   it('Calculates correct content risk classes', async () => {
@@ -98,14 +100,9 @@ describe('Popup', () => {
     })
     await wrapper.vm.$nextTick()
 
-    const riskBadge = wrapper.find('[data-testid="content-risk-badge"]')
-    const confidenceBadge = wrapper.find('[data-testid="confidence-badge"]')
-
-    expect(riskBadge.exists()).toBe(true)
-    expect(confidenceBadge.exists()).toBe(true)
-
-    expect(riskBadge.classes()).toContain('severity-low')
-    expect(confidenceBadge.classes()).toContain('severity-low')
+    const contentSection = wrapper.findAll('.analysis-section')[1]
+    expect(contentSection.exists()).toBe(true)
+    expect(contentSection.classes()).toContain('severity-low')
 
     await store.$patch({
       contentAnalysis: {
@@ -116,8 +113,7 @@ describe('Popup', () => {
     })
     await wrapper.vm.$nextTick()
 
-    expect(riskBadge.classes()).toContain('severity-medium')
-    expect(confidenceBadge.classes()).toContain('severity-high')
+    expect(contentSection.classes()).toContain('severity-medium')
   })
 
   it('Toggles display warnings setting', async () => {
