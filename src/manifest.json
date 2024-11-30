@@ -19,10 +19,6 @@
   "host_permissions": ["https://mail.google.com/"],
   "content_scripts": [
     {
-      "matches": ["https://twitter.com/*", "https://x.com/*"],
-      "js": ["src/content-twitter-analysis.ts"]
-    },
-    {
       "matches": ["<all_urls>"],
       "exclude_matches": ["https://*.google.com/*"],
       "js": ["src/content-phishing-analysis.ts"]
