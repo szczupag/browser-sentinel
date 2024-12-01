@@ -2,7 +2,10 @@
   <div class="ai-scanner-warning">
     <div class="ai-scanner-warning-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        <path
+          d="m 9.374502,15.370518 5.52988,-5.7848606 M 20.618,5.984 C 17.456104,6.1519152 14.356734,5.0586125 12,2.944 9.6432656,5.0586125 6.5438962,6.1519152 3.382,5.984 3.1275331,6.9691141 2.9991734,7.982551 3,9 3,14.591 6.824,19.29 12,20.622 17.176,19.29 21,14.592 21,9 21,7.958 20.867,6.948 20.618,5.984 Z M 14.924303,15.227092 9.3306772,9.6015936"
+          id="path2"
+        />
       </svg>
     </div>
     <div>
@@ -12,7 +15,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { default as t } from './TranslateText.vue';
+import { default as t } from './TranslateText.vue'
 </script>
 <style scoped>
 .ai-scanner-warning {
@@ -35,7 +38,12 @@ import { default as t } from './TranslateText.vue';
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 </style>
