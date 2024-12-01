@@ -376,7 +376,7 @@ async function shouldHighlightUGC(): Promise<boolean> {
 
 // Main execution
 ;(async () => {
-  const domain = location.hostname.replace('www.', '');
+  const domain = location.hostname.replace(/^www\./, '');
   
 
   const analyzer = createSocialAnalyzer(domain)
