@@ -8,6 +8,7 @@ import styles from './content-gmail.css?inline'
 import SafeBrowsingClient from './SafeBrowsingClient'
 import { AnalysisStatus } from '../constants/analysisStatus'
 import { ContentAnalysis, DomainAnalysis } from '../store'
+import { RiskLevel } from '../constants/riskLevels'
 
 // URL Shortener Services
 const URL_SHORTENERS = [
@@ -426,21 +427,41 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
     try {
       const scanResult = await analyzeEmail(messageID, metadata, emailText)
 
+      console.log('scanResult', scanResult)
+
       // Convert scan result to ContentAnalysis format
+      const violations =
+        scanResult.contentAnalysis.suspiciousContent?.map((item) => ({
+          rule: item.reason || 'Unknown Issue',
+          severity: (item.severity as RiskLevel) || 'LOW',
+          explanation: item.text || 'No details available',
+        })) || []
+
+      const hasHighSeverity = violations.some((v) => v.severity === 'HIGH')
+      const hasMediumSeverity = violations.some((v) => v.severity === 'MEDIUM')
+
+      const noThreatsDetected =
+        !violations.length || !scanResult.contentAnalysis.suspiciousContent?.length
+
       const contentAnalysis: ContentAnalysis = {
         title: 'Email Security Analysis',
-        violations:
-          scanResult.contentAnalysis.suspiciousContent?.map((item) => ({
-            rule: item.reason || 'Unknown Issue',
-            severity: item.severity || 'LOW',
-            explanation: item.text || 'No details available',
-          })) || [],
-        overallRiskScore: scanResult.contentAnalysis.analysis?.risk || 'LOW',
-        overallConfidence: scanResult.contentAnalysis.analysis?.confidence || 'LOW',
-        isSafe: scanResult.contentAnalysis.analysis?.safe ?? true,
+        violations,
+        overallRiskScore: noThreatsDetected
+          ? 'LOW'
+          : hasHighSeverity
+            ? 'HIGH'
+            : hasMediumSeverity
+              ? 'MEDIUM'
+              : 'LOW',
+        overallConfidence: noThreatsDetected
+          ? 'HIGH'
+          : scanResult.contentAnalysis.analysis?.confidence,
+        isSafe: noThreatsDetected || (!hasHighSeverity && !hasMediumSeverity),
         recommendation:
           scanResult.contentAnalysis.analysis?.recommendation || 'No specific recommendations',
       }
+
+      console.log('contentAnalysis', contentAnalysis)
 
       // Send analysis to background
       await sendAnalysisToBackground({
