@@ -18,7 +18,7 @@
             <line x1="12" y1="9" x2="12" y2="13" />
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
-          <span>{{ title }}</span>
+          <span><t :text="title" /></span>
         </div>
         <button class="phishing-alert-close" @click="handleClose">
           <svg
@@ -36,23 +36,19 @@
       <div class="phishing-alert-content">
         <!-- Risk Analysis Section -->
         <div class="analysis-section" :class="['severity-' + overallRiskScore.toLowerCase()]">
-          <h2>Risk Analysis</h2>
+          <h2><t text="Risk Analysis" /></h2>
           <div class="result">
-            <h3>Risk Level</h3>
-            <span>
-              {{ overallRiskScore }}
-            </span>
+            <h3><t text="Risk Level" /></h3>
+            <span><t :text="overallRiskScore" /></span>
           </div>
           <div class="result">
-            <h3>Confidence</h3>
-            <span>
-              {{ overallConfidence }}
-            </span>
+            <h3><t text="Confidence" /></h3>
+            <span><t :text="overallConfidence" /></span>
           </div>
         </div>
 
         <!-- Violations Section -->
-        <h2>Security Risks</h2>
+        <h2><t text="Security Risks" /></h2>
         <div
           v-for="violation in violations"
           :key="violation.rule"
@@ -61,25 +57,21 @@
         >
           <div class="violation-header">
             <h3 class="violation-name">{{ violation.rule }}</h3>
-            <span>
-              {{ violation.severity }}
-            </span>
+            <span><t :text="violation.severity" /></span>
           </div>
-          <p class="violation-description">{{ violation.explanation }}</p>
+          <p class="violation-description"><t :text="violation.explanation" /></p>
         </div>
 
         <!-- Recommendation Section -->
         <div v-if="recommendation" class="analysis-section">
-          <h2>Recommendation</h2>
-          <p class="recommendation-text">{{ recommendation }}</p>
+          <h2><t text="Recommendation" /></h2>
+          <p class="recommendation-text"><t :text="recommendation" /></p>
         </div>
 
         <!-- Actions Section -->
         <div class="phishing-actions">
-          <button class="phishing-btn phishing-btn-back" @click="handleBack">Leave Site</button>
-          <button class="phishing-btn phishing-btn-proceed" @click="handleProceed">
-            Proceed Anyway
-          </button>
+          <button class="phishing-btn phishing-btn-back" @click="handleBack"><t text="Leave Site" /></button>
+          <button class="phishing-btn phishing-btn-proceed" @click="handleProceed"><t text="Proceed Anyway" /></button>
         </div>
       </div>
     </div>
@@ -88,6 +80,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { default as t } from './TranslateText.vue';
 
 const props = defineProps<{
   title: string

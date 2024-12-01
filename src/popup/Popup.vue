@@ -13,7 +13,7 @@
     >
       <div class="status-indicator">
         <div class="loading-spinner"></div>
-        <span>Starting security analysis...</span>
+        <span><t text="Starting security analysis..." /></span>
       </div>
     </div>
 
@@ -25,14 +25,14 @@
       "
       :class="['analysis-section', domainStatusClass]"
     >
-      <h2>Domain Analysis</h2>
+      <h2><t text="Domain Analysis" /></h2>
       <div class="result">
-        <h3>Status</h3>
-        <span>{{ domainStatus.toUpperCase() }}</span>
+        <h3><t text="Status" /></h3>
+        <span><t :text="domainStatus.toUpperCase()" /></span>
       </div>
       <div class="result" v-if="store.domainAnalysis?.legitimateDomain">
-        <h3>Similar to</h3>
-        <span>{{ store.domainAnalysis.legitimateDomain }}</span>
+        <h3><t text="Similar to" /></h3>
+        <span><t :text="store.domainAnalysis.legitimateDomain" /></span>
       </div>
     </div>
 
@@ -43,7 +43,7 @@
     >
       <div class="status-indicator">
         <div class="loading-spinner"></div>
-        <span>Analyzing page content...</span>
+        <span><t text="Analyzing page content..." /></span>
       </div>
     </div>
 
@@ -52,26 +52,26 @@
       v-if="store.status === AnalysisStatus.ANALYSIS_FINISHED"
       :class="['analysis-section', contentRiskClass]"
     >
-      <h2>Content Analysis</h2>
+      <h2><t text="Content Analysis" /></h2>
       <div class="result">
-        <h3>Risk Level</h3>
-        <span>{{ store.contentAnalysis?.overallRiskScore || 'Not analyzed' }}</span>
+        <h3><t text="Risk Level" /></h3>
+        <span><t :text="store.contentAnalysis?.overallRiskScore || 'Not analyzed'" /></span>
       </div>
       <div class="result">
-        <h3>Confidence</h3>
-        <span>{{ store.contentAnalysis?.overallConfidence || 'N/A' }}</span>
+        <h3><t text="Confidence" /></h3>
+        <span><t :text="store.contentAnalysis?.overallConfidence || 'N/A'" /></span>
       </div>
     </div>
 
     <!-- Preferences -->
     <div class="settings-section">
-      <h2>Preferences</h2>
+      <h2><t text="Preferences" /></h2>
       <div class="settings-group">
         <div class="setting-item">
           <div class="setting-info">
-            <label for="display-warnings-setting">Display Domain Warnings</label>
+            <label for="display-warnings-setting"><t text="Display Domain Warnings" /></label>
             <span class="setting-description">
-              Get alerts for potentially malicious or suspicious domains while browsing.
+              <t text="Get alerts for potentially malicious or suspicious domains while browsing." />
             </span>
           </div>
           <label class="toggle">
@@ -86,9 +86,9 @@
         </div>
         <div class="setting-item">
           <div class="setting-info">
-            <label for="highlight-ugc-setting">Highlight UGC Threats</label>
+            <label for="highlight-ugc-setting"><t text="Highlight UGC Threats" /></label>
             <span class="setting-description">
-              Identify and flag risky user-generated content such as comments or messages.
+              <t text="Identify and flag risky user-generated content such as comments or messages." />
             </span>
           </div>
           <label class="toggle">
@@ -103,9 +103,9 @@
         </div>
         <div class="setting-item">
           <div class="setting-info">
-            <label for="highlight-email-setting">Display Email Analysis</label>
+            <label for="highlight-email-setting"><t text="Display Email Analysis" /></label>
             <span class="setting-description">
-              Scan emails to detect and highlight potential threats or phishing attempts.
+              <t text="Scan emails to detect and highlight potential threats or phishing attempts." />
             </span>
           </div>
           <label class="toggle">
@@ -127,6 +127,7 @@
 import { useMainStore } from '../store'
 import { computed, onMounted } from 'vue'
 import { AnalysisStatus } from '../constants/analysisStatus'
+import { default as t } from '../components/TranslateText.vue';
 
 const store = useMainStore()
 

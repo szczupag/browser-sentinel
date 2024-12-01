@@ -49,7 +49,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { default as t } from './TranslateText.vue';
+import { default as t } from '../components/TranslateText.vue';
 import type { ScanResult } from './types';
 
 defineProps<{
