@@ -17,6 +17,9 @@ describe('Popup', () => {
     store = useMainStore()
     await store.initialize()
     wrapper = mount(Popup)
+    vi.mock('../utils/translate', () => ({
+      translate: vi.fn().mockImplementation((text) => Promise.resolve(text))
+    }))
   })
 
   it('Renders popup header', () => {
