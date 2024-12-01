@@ -451,6 +451,9 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
       // Update UI if it was created
       if (scannerInstance) {
         scannerInstance.updateResults(scanResult)
+        if (scanResult.contentAnalysis.suspiciousContent.length > 0) {
+          await highlightThreats(bodyElement, scanResult)
+        }
       }
     } catch (error) {
       console.error('Analysis failed:', error)
