@@ -2,6 +2,45 @@
   <div class="popup" role="main">
     <div class="popup-header">
       <div class="popup-header-content">
+        <!-- Danger Icon -->
+        <div
+          class="icon-container severity-high"
+          v-if="
+            store.domainAnalysis?.isSuspicious ||
+            (store.status === AnalysisStatus.ANALYSIS_FINISHED &&
+              store.contentAnalysis?.overallRiskScore !== 'LOW')
+          "
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="m 9.374502,15.370518 5.52988,-5.7848606 M 20.618,5.984 C 17.456104,6.1519152 14.356734,5.0586125 12,2.944 9.6432656,5.0586125 6.5438962,6.1519152 3.382,5.984 3.1275331,6.9691141 2.9991734,7.982551 3,9 3,14.591 6.824,19.29 12,20.622 17.176,19.29 21,14.592 21,9 21,7.958 20.867,6.948 20.618,5.984 Z M 14.924303,15.227092 9.3306772,9.6015936"
+              id="path2"
+            />
+          </svg>
+        </div>
+        <!-- Default Icon -->
+        <div
+          class="icon-container"
+          v-else-if="
+            store.status === AnalysisStatus.STARTING_DOMAIN_ANALYSIS ||
+            store.status === AnalysisStatus.STARTING_CONTENT_ANALYSIS
+          "
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M 20.618,5.984 C 17.456104,6.1519152 14.356734,5.0586125 12,2.944 9.6432656,5.0586125 6.5438962,6.1519152 3.382,5.984 3.1275331,6.9691141 2.9991734,7.982551 3,9 3,14.591 6.824,19.29 12,20.622 17.176,19.29 21,14.592 21,9 21,7.958 20.867,6.948 20.618,5.984 Z"
+              id="path2"
+            />
+          </svg>
+        </div>
+        <!-- Safe Icon -->
+        <div class="icon-container severity-low" v-else>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
+          </svg>
+        </div>
         <h1>Browser Sentinel</h1>
       </div>
     </div>
@@ -173,13 +212,10 @@ body {
 .popup-header-content {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
-.popup-header h1 {
-  font-size: 24px;
+.popup-header-content h1 {
   margin: 0;
-  font-weight: 600;
 }
 
 /* Typography */
@@ -412,5 +448,45 @@ input:focus + .toggle-slider {
     background: rgba(22, 163, 74, 0.15);
     color: #4ade80;
   }
+}
+
+/* Icon Styles */
+.icon-container {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-container svg {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-container.severity-high {
+  background: transparent;
+}
+
+.icon-container.severity-high svg {
+  stroke: #dc2626;
+}
+
+.icon-container.severity-medium {
+  background: transparent;
+}
+
+.icon-container.severity-medium svg {
+  stroke: #ea580c;
+}
+
+.icon-container.severity-low {
+  background: transparent;
+}
+
+.icon-container.severity-low svg {
+  stroke: #16a34a;
 }
 </style>

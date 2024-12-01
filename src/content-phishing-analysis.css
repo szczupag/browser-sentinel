@@ -109,7 +109,6 @@
 .phishing-alert-header-content {
   display: flex;
   align-items: center;
-  gap: 12px;
   font-size: 18px;
   font-weight: 600;
 }
@@ -542,4 +541,43 @@
   font-size: 14px;
   line-height: 1.5;
   margin: 0;
+}
+
+.icon-container {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-container svg {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-container.severity-high {
+  background: transparent;
+}
+
+.icon-container.severity-high svg {
+  stroke: #dc2626;
+}
+
+.icon-container.severity-medium {
+  background: transparent;
+}
+
+.icon-container.severity-medium svg {
+  stroke: #ea580c;
+}
+
+.icon-container.severity-low {
+  background: transparent;
+}
+
+.icon-container.severity-low svg {
+  stroke: #16a34a;
 }

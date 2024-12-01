@@ -26,7 +26,7 @@ export default defineConfig({
     }),
     viteStaticCopy({
       targets: [
-        { src: 'node_modules/@inboxsdk/core/pageWorld.js', dest: 'dist' },
+        { src: 'node_modules/@inboxsdk/core/pageWorld.js', dest: '' },
         { src: 'src/icons', dest: '' },
       ],
     }),
