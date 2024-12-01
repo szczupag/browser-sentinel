@@ -148,4 +148,4 @@ npm run test       # Run tests
 
 ## 📜 License
 
-[TBD](LICENSE)
+[MIT](LICENSE)
