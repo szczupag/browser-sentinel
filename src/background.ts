@@ -95,9 +95,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       () => {
         // Update icon for this tab
         updateExtensionIcon(analysisUpdate, tabId)
+        // Send response to indicate completion
+        sendResponse({ success: true })
       }
     )
+    // Return true to indicate we will send response asynchronously
+    return true
   }
+  // Return false for unhandled messages
+  return false
 })
 
 // Clean up stored analyses when tabs are closed
