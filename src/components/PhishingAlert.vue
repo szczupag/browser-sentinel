@@ -56,7 +56,7 @@
           :class="['severity-' + violation.severity.toLowerCase()]"
         >
           <div class="violation-header">
-            <h3 class="violation-name">{{ violation.rule }}</h3>
+            <h3 class="violation-name"><t :text="violation.rule" /></h3>
             <span><t :text="violation.severity" /></span>
           </div>
           <p class="violation-description"><t :text="violation.explanation" /></p>
