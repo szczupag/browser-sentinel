@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Helvetica, Arial, sans-serif;
+            background: #ffffff;
+        }
+
+        body > div:first-child{
+            min-height: 100vh;
+            box-sizing: border-box;
+            padding: 16px 0 0 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Header styles */
+        .x78zum5.xdt5ytf.x1iyjqo2.x1t2pt76 {
+            padding: 8px 16px;
+            border-bottom: 1px solid #d0d0d0;
+            width: 100%;
+        }
+
+        .x1lliihq.x193iq5w {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        /* Messages area */
+        .x78zum5.xdt5ytf.x1iyjqo2.xs83m0k.x1n2onr6 {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .xdj266r.x11i5rnm.xat24cr.x1xmf6yo {
+            background-color: #e0e0e0;
+            padding: 12px 16px;
+            border-radius: 24px;
+            margin: 6px 0;
+            max-width: 80%;
+            min-width: 200px;
+            font-size: 17px;
+            color: #000000;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .x78zum5.xdt5ytf.x1iyjqo2.xs83m0k.x1n2onr6.xjqpnuy {
+            width: 100%;
+        }
+
+        /* Chat messages container */
+        .x1n2onr6.xs83m0k.x193iq5w {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: left;
+            align-items: flex-start;
+        }
+
+        .x78zum5.xdt5ytf.x1iyjqo3,
+        .x1uvtmcs.x4k7w5x.x1h91t0o {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .x1n2onr6.x6s0dn4.x1ye3gou.x1h91t0o {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Encryption message styles */
+        .x9f619.x1ja2u2z.xeuugli {
+            background-color: #fff;
+            padding: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Timestamps */
+        .x1n2onr6.x193iq5w {
+            font-size: 15px;
+            color: #404040;
+            margin: 4px 12px;
+        }
+
+        /* Composer */
+        .xuk3077.x78zum5 {
+            padding: 16px;
+            border-top: 1px solid #d0d0d0;
+            width: 100%;
+        }
+
+        .xzsf02u.x1a2a7pz {
+            background-color: #e6e6e6;
+            border-radius: 24px;
+            padding: 12px 16px;
+            min-height: 24px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 17px;
+        }
+
+        [contenteditable][placeholder]:empty:before {
+            content: attr(placeholder);
+            color: #4a4a4a;
+            font-size: 17px;
+        }
+
+        #wave {
+            margin: 20px 10px 0 10px;
+        }
+        #wave .dot {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            margin-right: 0.5px;
+            background: #5500ee;
+            animation: wave 1s linear infinite;
+            animation-delay: -0.9s;
+        }
+        #wave .dot.two {
+            animation-delay: -0.7s;
+        }
+        #wave .dot:nth-child(3) {
+            animation-delay: -0.6s;
+        }
+
+        @keyframes wave {
+            0%,
+            60%,
+            100% {
+                transform: initial;
+            }
+            30% {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* Header name */
+        .x1heor9g.x1qlqyl8 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        /* Active status */
+        .x6s0dn4.x78zum5 {
+            font-size: 16px;
+            color: #1a1a1a;
+        }
+
+        /* Encryption message specific style */
+        .x1n2onr6.x6s0dn4.x1ye3gou.x1h91t0o .xdj266r.x11i5rnm.xat24cr.x1xmf6yo {
+            font-size: 16px;
+            color: #000000;
+            background-color: #e6e6e6;
+            border-radius: 24px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="x9f619 x1n2onr6 x1ja2u2z x78zum5 xdt5ytf x193iq5w xeuugli x1r8uery x1iyjqo2 xs83m0k">
+        <!-- Header -->
+        <div class="x78zum5 xdt5ytf x1iyjqo2 x1t2pt76 xeuugli x1n2onr6 x1ja2u2z">
+            <div class="x9f619 x1n2onr6 x1ja2u2z x78zum5 xdt5ytf x1iyjqo2 xs83m0k x193iq5w">
+                <div class="x78zum5 xdt5ytf x1iyjqo2">
+                    <a class="x1i10hfl x1qjc9v5 xjbqb8w xjqpnuy xa49m3k" href="#">
+                        <div class="x9f619 x1n2onr6 x1ja2u2z">
+                            <img class="x1lliihq x193iq5w" src="https://picsum.photos/40" alt="">
+                        </div>
+                    </a>
+                    <div class="xdj266r x11i5rnm xat24cr x1mh8g0r">
+                        <h2 class="x1heor9g x1qlqyl8">John Smith</h2>
+                        <div class="x6s0dn4 x78zum5">Active now</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="x78zum5 xdt5ytf x1iyjqo2 xs83m0k x1n2onr6 xjqpnuy">
+            <div class="x1uvtmcs x4k7w5x x1h91t0o">
+                <div class="x78zum5 xdt5ytf x1iyjqo3">
+                    <div class="x1n2onr6 x6s0dn4 x1ye3gou x1h91t0o">
+                        <div class="xdj266r x11i5rnm xat24cr x1xmf6yo">
+                            Messages are end-to-end encrypted. No one outside of this chat can read or listen to them.
+                        </div>
+                    </div>
+
+                    <div class="x1n2onr6 xs83m0k x193iq5w">    
+                        <div class="x1n2onr6 x6s0dn4 x1ye3gou" style="align-self: flex-end;">
+                            <div class="xdj266r x11i5rnm xat24cr x1xmf6yo" style="background-color: #0084ff; color: white;">
+                                Hey! How was your trip? 😊
+                            </div>
+                            <div class="x1n2onr6 x193iq5w">Last week</div>
+                        </div>
+    
+                        <div class="x1n2onr6 x6s0dn4 x1ye3gou">
+                            <div class="xdj266r x11i5rnm xat24cr x1xmf6yo">
+                                I'll tell you everything when we meet! 🍻
+                            </div>
+                            <div class="x1n2onr6 x193iq5w">Last week</div>
+                        </div>
+
+                        <div id="wave">
+                            <span class="dot one"></span>
+                            <span class="dot two"></span>
+                            <span class="dot three"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Composer -->
+        <div class="xuk3077 x78zum5">
+            <div class="x78zum5 x1iyjqo2">
+                <div class="x16sw7j7 x1iyjqo2">
+                    <div contenteditable="true" class="xzsf02u x1a2a7pz notranslate x1xmf6yo" role="textbox" aria-label="Message" placeholder="Aa"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    setTimeout(() => {
+        const wave = document.getElementById('wave');
+        wave.outerHTML = `
+            <div class="x1n2onr6 x6s0dn4 x1ye3gou">
+                <div class="xdj266r x11i5rnm xat24cr x1xmf6yo">
+                    Hey, I'm in a really tough situation. I'm stranded in London and my wallet was stolen. I need help urgently.
+                </div>
+                <div class="x1n2onr6 x193iq5w">2:15 PM</div>
+            </div>
+            <div id="wave">
+                <span class="dot one"></span>
+                <span class="dot two"></span>
+                <span class="dot three"></span>
+            </div>
+        `;
+    }, 2000);
+
+    setTimeout(() => {
+        const wave = document.getElementById('wave');
+        wave.outerHTML = `
+            <div class="x1n2onr6 x6s0dn4 x1ye3gou">
+                <div class="xdj266r x11i5rnm xat24cr x1xmf6yo">
+                    I need to book a hotel and get a flight back home. Could you please lend me $2,500? I'll pay you back as soon as I get home.
+                </div>
+                <div class="x1n2onr6 x193iq5w">2:16 PM</div>
+            </div>
+            <div id="wave">
+                <span class="dot one"></span>
+                <span class="dot two"></span>
+                <span class="dot three"></span>
+            </div>
+        `;
+    }, 10000);
+
+    setTimeout(() => {
+        const wave = document.getElementById('wave');
+        wave.outerHTML = `
+            <div class="x1n2onr6 x6s0dn4 x1ye3gou">
+                <div class="xdj266r x11i5rnm xat24cr x1xmf6yo">
+                    I need the money within an hour. Here's my bank details: GB29 NWBK 6016 1331 9268 19. Please help!
+                </div>
+                <div class="x1n2onr6 x193iq5w">2:17 PM</div>
+            </div>
+        `;
+    }, 15000);
+</script>
+</html>
