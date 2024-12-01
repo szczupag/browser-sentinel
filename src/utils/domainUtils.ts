@@ -1,6 +1,8 @@
 import { distance as levenshtein } from 'fastest-levenshtein'
 import psl from 'psl'
 
+const MIN_DOMAIN_LENGTH = 7; // Minimum length of a domain to be considered for analysis to avoid false positives with the Levenshtein distance
+
 /**
  * Extracts the main domain from a full domain string using a bottom-up approach.
  * Handles any number of TLD levels.
@@ -46,7 +48,7 @@ export function analyzeDomain(
 } {
   const mainCurrentDomain = extractMainDomain(currentDomain)
 
-  if (!mainCurrentDomain) return { isSuspicious: false }
+  if (!mainCurrentDomain || mainCurrentDomain.length <= MIN_DOMAIN_LENGTH) return { isSuspicious: false }
 
   // First check if the domain is in the legitimate domains list
   const isLegitimate = legitimateDomains.some((legitDomain) => {

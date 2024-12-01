@@ -39,6 +39,34 @@ export const useMainStore = defineStore('main', {
   actions: {
     async initialize() {
       await this.loadSettings()
+
+      // Add storage change listener
+      chrome.storage.local.onChanged.addListener(
+        async (changes: { [key: string]: chrome.storage.StorageChange }) => {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+          const currentTabId = tabs[0]?.id
+          if (!currentTabId) return
+
+          console.log('Storage changes:', changes)
+
+          // Update store based on changes
+          for (const [key, { newValue }] of Object.entries(changes)) {
+            if (key === 'displaySuspiciousDomainAlerts') {
+              this.displaySuspiciousDomainAlerts = newValue ?? true
+            } else if (key === 'highlightSuspiciousUGC') {
+              this.highlightSuspiciousUGC = newValue ?? true
+            } else if (key === 'highlightSuspiciousEmailContent') {
+              this.highlightSuspiciousEmailContent = newValue ?? true
+            } else if (key === `tab_${currentTabId}_domainAnalysis`) {
+              this.domainAnalysis = newValue ?? null
+            } else if (key === `tab_${currentTabId}_contentAnalysis`) {
+              this.contentAnalysis = newValue ?? null
+            } else if (key === `tab_${currentTabId}_status`) {
+              this.status = newValue ?? null
+            }
+          }
+        }
+      )
     },
 
     async loadSettings() {

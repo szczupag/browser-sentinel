@@ -131,19 +131,7 @@ import { AnalysisStatus } from '../constants/analysisStatus'
 const store = useMainStore()
 
 onMounted(async () => {
-  try {
-    await store.initialize()
-  } catch (error) {
-    console.error('Failed to initialize store:', error)
-    store.$patch({
-      displaySuspiciousDomainAlerts: true,
-      highlightSuspiciousUGC: true,
-      highlightSuspiciousEmailContent: true,
-      domainAnalysis: null,
-      contentAnalysis: null,
-      status: null,
-    })
-  }
+  await store.initialize()
 })
 
 const domainStatus = computed(() => {
