@@ -4,20 +4,14 @@
       <!-- Header Section -->
       <div class="phishing-alert-header">
         <div class="phishing-alert-header-content">
-          <svg
-            class="phishing-alert-header-icon"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
+          <div class="icon-container" :class="severityClass">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="m 9.374502,15.370518 5.52988,-5.7848606 M 20.618,5.984 C 17.456104,6.1519152 14.356734,5.0586125 12,2.944 9.6432656,5.0586125 6.5438962,6.1519152 3.382,5.984 3.1275331,6.9691141 2.9991734,7.982551 3,9 3,14.591 6.824,19.29 12,20.622 17.176,19.29 21,14.592 21,9 21,7.958 20.867,6.948 20.618,5.984 Z M 14.924303,15.227092 9.3306772,9.6015936"
+                id="path2"
+              />
+            </svg>
+          </div>
           <span>{{ title }}</span>
         </div>
         <button class="phishing-alert-close" @click="handleClose">
@@ -87,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   title: string
@@ -102,6 +96,20 @@ const props = defineProps<{
 }>()
 
 const isVisible = ref(true)
+
+const isHighRisk = computed(() => props.overallRiskScore === 'HIGH')
+const isMediumRisk = computed(() => props.overallRiskScore === 'MEDIUM')
+
+const severityClass = computed(() => {
+  switch (props.overallRiskScore) {
+    case 'HIGH':
+      return 'severity-high'
+    case 'MEDIUM':
+      return 'severity-medium'
+    default:
+      return 'severity-low'
+  }
+})
 
 const handleClose = () => {
   isVisible.value = false
