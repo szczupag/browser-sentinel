@@ -1,4 +1,4 @@
-# 🛡️ BrowserSentinel
+# <img src="src/icons/128/BrowserSentinel-default.png" width="32" height="32" alt="BrowserSentinel Icon" align="center"> BrowserSentinel
 
 ## 🎯 Overview
 
@@ -11,13 +11,16 @@ BrowserSentinel is an AI-powered Chrome extension that safeguards users from onl
 - Privacy-focused: all analysis happens on your device
 
 ## 🔬 Technical Approach & Findings
+
 <details>
 <summary>Click to expand technical details</summary>
 
 ### Webpage phishing Detector:
+
 Our phishing detection combines traditional security measures with AI analysis:
 
 1. **Domain Analysis**:
+
    - Implemented Levenshtein distance comparison for typosquatting detection
    - Uses a curated list of legitimate domains as baseline
    - Handles edge cases like subdomains and country-specific TLDs
@@ -25,16 +28,19 @@ Our phishing detection combines traditional security measures with AI analysis:
 2. **AI Content Analysis**:
    - Utilizes Chrome's Gemini Nano model for content verification
    - Local processing ensures privacy
-  
+
 ### Email Phishing Detection:
+
 Our email scanning feature analyzes Gmail messages for potential threats:
 
 1. **Content Analysis**:
+
    - Uses Chrome's built-in Gemini Nano for contextual understanding
    - Analysis performed locally for maximum privacy (with the exception of the Google safe browsing lookup)
    - Real-time visual highlighting of potential threats
 
 2. **Threat Classification**:
+
    - Three-tier severity system (HIGH/MEDIUM/LOW)
    - Color-coded visual indicators
    - Contextual tooltips explaining concerns
@@ -59,16 +65,19 @@ These limitations actually led to a more robust solution combining traditional s
 ## ⚠️ Known Issues & Limitations
 
 ### Language Support
+
 - Primary focus on English content
 - Limited effectiveness with non-English emails and websites
 - May incorrectly flag legitimate non-English business communications
 
 ### AI Model Behavior
+
 - Occasional Gemini Nano timeouts or errors
 - Model needs periodic reloading in some cases
 - Some inconsistency in threat level assessment
 
 ### False Positives
+
 - May flag legitimate business deadlines as urgent language
 - Sometimes over-sensitive to normal marketing language
 - Can mistake standard legal disclaimers for threats
@@ -87,6 +96,7 @@ These limitations actually led to a more robust solution combining traditional s
 ## 🔧 Testing Tools
 
 In `/phishing-mocks-websites` you'll find our testing environment that helps validate BrowserSentinel's effectiveness. It safely simulates phishing attempts by:
+
 - Creating local mock websites that mimic common phishing patterns
 - Setting up HTTPS with self-signed certificates
 - Managing system hosts file for domain spoofing
@@ -105,17 +115,20 @@ This controlled environment lets us test detection capabilities without accessin
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/szczupag/browser-sentinel.git
    ```
 
 2. Install dependencies:
+
    ```bash
    cd browser-sentinel
    npm install
    ```
 
 3. Build the extension:
+
    ```bash
    npm run build:extension
    ```
