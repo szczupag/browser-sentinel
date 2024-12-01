@@ -333,6 +333,11 @@ async function handleUGCDetection(event: CustomEvent) {
     return
   }
 
+  // Send status update before starting analysis
+  sendAnalysisToBackground({
+    status: AnalysisStatus.STARTING_CONTENT_ANALYSIS,
+  })
+
   const session = await window.ai.languageModel.create({
     topK: 1,
     temperature: 0.1,
