@@ -6,7 +6,7 @@ import { createApp } from 'vue'
 import PhishingAlert from './components/PhishingAlert.vue'
 import styles from './content-phishing-analysis.css?inline'
 import { analyzeDomain } from './utils/domainUtils.ts'
-import { estimateTokens, extractWebsiteInfo } from './utils/extractWebsiteInfo.ts'
+import { extractWebsiteInfo } from './utils/extractWebsiteInfo.ts'
 import { setupUGCDetection } from './utils/ugcDetector.ts'
 import { highlightUGCThreats } from './utils/highlightUGC.ts'
 import UGCThreatIcon from './components/UGCThreatIcon.vue'
@@ -413,6 +413,8 @@ async function shouldHighlightUGC(): Promise<boolean> {
       systemPrompt: SUSPICIOUS_DOMAIN_ANALYSIS_PROMPT,
     })
 
+    const websiteInfo = await extractWebsiteInfo(session, document)
+
     const promptText = `
 [Website Analysis Input]
 Domain Analysis Results:
@@ -424,9 +426,9 @@ Domain Analysis Results:
 
 Website Structure and Content:
 ------------------------------
-${extractWebsiteInfo(document)}
+${websiteInfo}
 ------------------------------`
-    console.log('Website content analysis: Prompt text', promptText, estimateTokens(promptText))
+    console.log('Website content analysis: Prompt text', promptText)
 
     const promptResult = await session.prompt(promptText)
     console.log('Website content analysis: Prompt result', promptResult)
