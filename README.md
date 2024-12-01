@@ -130,7 +130,7 @@ This controlled environment lets us test detection capabilities without accessin
 3. Build the extension:
 
    ```bash
-   npm run build:extension
+   npm run build
    ```
 
 4. Load in Chrome:
