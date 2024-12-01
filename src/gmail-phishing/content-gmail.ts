@@ -409,41 +409,18 @@ InboxSDK.load(2, 'sdk_sentinel_dff2bb5279').then((sdk) => {
     const emailText = bodyElement.innerText || ''
     const messageID = await messageView.getMessageIDAsync()
 
+    const recipients = await messageView.getRecipientsFull()
     // Safely extract metadata with error handling
     const metadata: EmailMetadata = {
-      fromAddress: messageView.getSender()?.emailAddress || '',
-      fromName: messageView.getSender()?.name || '',
-      to: '', // Initialize with empty string
-      subject: messageView.getThreadView()?.getSubject() || '',
-      attachments: [],
-      links: [],
-    }
-
-    // Safely get recipients
-    try {
-      const recipients = await messageView.getRecipientsFull()
-      metadata.to = recipients?.map((r) => r.emailAddress).join(', ') || ''
-    } catch (error) {
-      console.warn('Failed to get recipients:', error)
-    }
-
-    // Safely get attachments
-    try {
-      const attachmentViews = messageView.getFileAttachmentCardViews()
-      metadata.attachments = attachmentViews?.map((a) => a.getTitle()) || []
-    } catch (error) {
-      console.warn('Failed to get attachments:', error)
-    }
-
-    // Extract links from body
-    try {
-      const links = bodyElement.querySelectorAll('a')
-      metadata.links = Array.from(links).map((link) => ({
-        text: link.textContent || '',
-        href: link.href || '',
-      }))
-    } catch (error) {
-      console.warn('Failed to extract links:', error)
+      fromAddress: messageView.getSender().emailAddress,
+      fromName: messageView.getSender().name,
+      to: recipients.map((r) => r.emailAddress).join(', '),
+      subject: messageView.getThreadView().getSubject(),
+      attachments: messageView.getFileAttachmentCardViews().map((a) => a.getTitle()) || [],
+      links: messageView
+        .getLinksInBody()
+        .filter((e) => e.text.length > 0 && e.href.startsWith('http'))
+        .map((e) => ({ text: e.text, href: e.href })),
     }
 
     try {
