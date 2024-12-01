@@ -1,321 +1,545 @@
+/* Root Variables & Theme Configuration */
+:host {
+  /* Core Colors */
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-danger: #dc2626;
+  --color-warning: #ea580c;
+  --color-success: #16a34a;
+  --color-neutral: #64748b;
+  --color-neutral-strong: #475569;  /* For HIGH confidence */
+  --color-neutral-medium: #64748b;  /* For MEDIUM confidence */
+  --color-neutral-light: #94a3b8;   /* For LOW confidence */
+  /* Light Theme */
+  --light-bg: #ffffff;
+  --light-text: #1f2937;
+  --light-text-secondary: #4b5563;
+  --light-border: rgba(0, 0, 0, 0.1);
+  --light-overlay: rgba(0, 0, 0, 0.75);
+  --light-shadow: rgba(0, 0, 0, 0.1);
+  /* Dark Theme */
+  --dark-bg: #1a1b1e;
+  --dark-text: #f3f4f6;
+  --dark-text-secondary: #9ca3af;
+  --dark-border: rgba(255, 255, 255, 0.1);
+  --dark-overlay: rgba(0, 0, 0, 0.85);
+  --dark-shadow: rgba(0, 0, 0, 0.4);
+  /* Risk Colors */
+  --risk-high-bg: rgba(220, 38, 38, 0.1);
+  --risk-high-border: rgba(220, 38, 38, 0.3);
+  --risk-medium-bg: rgba(234, 88, 12, 0.1);
+  --risk-medium-border: rgba(234, 88, 12, 0.3);
+  --risk-low-bg: rgba(22, 163, 74, 0.1);
+  --risk-low-border: rgba(22, 163, 74, 0.3);
+  --risk-high: var(--color-danger);
+  --risk-medium: var(--color-warning);
+  --risk-low: var(--color-success);
+  /* Confidence Colors */
+  --color-neutral-strong: #3b82f6;  /* Bright blue */
+  --color-neutral-medium: #60a5fa;  /* Medium blue */
+  --color-neutral-light: #93c5fd;   /* Light blue */
+  --neutral-high-bg: rgba(59, 130, 246, 0.15);
+  --neutral-medium-bg: rgba(96, 165, 250, 0.15);
+  --neutral-low-bg: rgba(147, 197, 253, 0.15);
+  /* Alert Colors */
+  --alert-bg: var(--bg-primary);
+  --alert-text: var(--text-primary);
+  --alert-shadow: var(--shadow-color);
+  --alert-shadow-dark: var(--dark-shadow);
+}
+
+/* Theme Application */
+@media (prefers-color-scheme: light) {
+  :host {
+    --bg-primary: var(--light-bg);
+    --text-primary: var(--light-text);
+    --text-secondary: var(--light-text-secondary);
+    --border-color: var(--light-border);
+    --overlay-bg: var(--light-overlay);
+    --shadow-color: var(--light-shadow);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --bg-primary: var(--dark-bg);
+    --text-primary: var(--dark-text);
+    --text-secondary: var(--dark-text-secondary);
+    --border-color: var(--dark-border);
+    --overlay-bg: var(--dark-overlay);
+    --shadow-color: var(--dark-shadow);
+  }
+}
+
+/* Alert Overlay */
 .phishing-alert-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: grid;
+  place-items: center;
+  padding: 20px;
   z-index: 2147483647;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  animation: fade-in 0.2s ease;
 }
 
+/* Alert Container */
 .phishing-alert-container {
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  width: 520px;
-  max-width: 90%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px var(--shadow-color);
+  width: 100%;
+  max-width: 560px;
   max-height: 90vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
+  animation: slide-up 0.3s ease;
 }
 
+/* Alert Header */
 .phishing-alert-header {
-  background-color: #2c3e50;
-  color: white;
+  color: var(--text-primary);
   padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .phishing-alert-header-content {
   display: flex;
   align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.phishing-alert-content h2 {
   font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
 }
 
-.phishing-alert-header-content svg {
-  margin-right: 12px;
+.phishing-alert-header-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2px;
 }
 
+.phishing-alert-close {
+  background: transparent;
+  border: none;
+  color: var(--bg-primary);
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phishing-alert-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.phishing-alert-close-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2px;
+}
+
+/* Alert Content */
 .phishing-alert-content {
   padding: 24px;
   overflow-y: auto;
+  text-align: left;
 }
 
+/* Risk Section */
 .phishing-risk-section {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 24px;
   gap: 16px;
-}
-
-.phishing-risk-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.phishing-risk-label {
-  font-size: 14px;
-  color: #495057;
-  white-space: nowrap;
-}
-
-.phishing-risk-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-}
-
-/* Risk level badges */
-.risk-high {
-  background-color: #fde8e8;
-  color: #e53e3e;
-}
-
-.risk-medium {
-  background-color: #fef3c7;
-  color: #d97706;
-}
-
-.risk-low {
-  background-color: #def7ec;
-  color: #057a55;
-}
-
-/* Confidence level badges */
-.confidence-high {
-  background-color: #e8f0fe;
-  color: #1a56db;
-}
-
-.confidence-medium {
-  background-color: #f3f4f6;
-  color: #4b5563;
-}
-
-.confidence-low {
-  background-color: #f3f4f6;
-  color: #6b7280;
-}
-
-.phishing-rules {
-  background-color: #e9ecef;
-  border-left: 3px solid #2c3e50;
-  padding: 16px;
   margin-bottom: 24px;
-  border-radius: 2px;
 }
 
-.phishing-rules h3 {
-  margin: 0 0 12px 0;
-  color: #2c3e50;
-  font-size: 14px;
+.risk-badge {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.risk-badge-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.risk-badge-value {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
   font-weight: 600;
+  font-size: 14px;
 }
 
-.phishing-rules-list {
+/* Violations List */
+.violations-list {
+  margin: 24px 0;
+}
+
+.violations-list h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.violation-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.violation-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.violation-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.violation-severity {
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.violation-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Recommendation Section */
+.recommendation {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+.recommendation h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.recommendation p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Action Buttons */
+.phishing-actions {
+  display: flex;
   gap: 12px;
+  margin-top: 24px;
 }
 
-.phishing-rule-item {
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+.phishing-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
 }
 
-.phishing-rule-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
+.phishing-btn-back {
+  background: var(--color-danger);
+  color: white;
 }
 
-.phishing-rule-header {
+.phishing-btn-back:hover {
+  background: color-mix(in srgb, var(--color-danger) 90%, black);
+}
+
+.phishing-btn-proceed {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.phishing-btn-proceed:hover {
+  background: color-mix(in srgb, var(--bg-primary) 96%, var(--text-primary));
+}
+
+/* Severity Classes */
+.severity-high {
+  background: var(--risk-high-bg);
+  color: var(--color-danger);
+}
+
+.severity-medium {
+  background: var(--risk-medium-bg);
+  color: var(--color-warning);
+}
+
+.severity-low {
+  background: var(--risk-low-bg);
+  color: var(--color-success);
+}
+
+.severity-neutral-high {
+  background: var(--neutral-high-bg);
+  color: var(--color-neutral-strong);
+}
+
+.severity-neutral-medium {
+  background: var(--neutral-medium-bg);
+  color: var(--color-neutral-medium);
+}
+
+.severity-neutral-low {
+  background: var(--neutral-low-bg);
+  color: var(--color-neutral-light);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Highlight Styles */
+.ai-sentinel-highlight {
+  cursor: help;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
+}
+
+.ai-sentinel-highlight[data-level="HIGH"] {
+  background: var(--risk-high-bg);
+  border-bottom: 2px solid var(--risk-high-border);
+}
+
+.ai-sentinel-highlight[data-level="MEDIUM"] {
+  background: var(--risk-medium-bg);
+  border-bottom: 2px solid var(--risk-medium-border);
+}
+
+.ai-sentinel-highlight[data-level="LOW"] {
+  background: var(--risk-low-bg);
+  border-bottom: 2px solid var(--risk-low-border);
+}
+
+.ai-sentinel-highlight:hover {
+  filter: brightness(0.95);
+}
+
+.threat-icon {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+  color: var(--bg-primary);
+}
+
+.threat-icon:hover {
+  transform: scale(1.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .threat-icon {
+    box-shadow: 0 2px 8px var(--shadow-color);
+  }
+}
+
+.threat-icon.severity-high {
+  background: var(--risk-high);
+}
+
+.threat-icon.severity-medium {
+  background: var(--risk-medium);
+}
+
+.threat-icon.severity-low {
+  background: var(--risk-low);
+}
+
+/* Analysis Sections */
+.analysis-section {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Risk Level Backgrounds */
+.analysis-section.severity-high {
+  background: var(--risk-high-bg);
+  border-color: var(--risk-high-border);
+}
+
+.analysis-section.severity-medium {
+  background: var(--risk-medium-bg);
+  border-color: var(--risk-medium-border);
+}
+
+.analysis-section.severity-low {
+  background: var(--risk-low-bg);
+  border-color: var(--risk-low-border);
+}
+
+/* Confidence Level Backgrounds */
+.analysis-section.severity-neutral-high {
+  background: var(--neutral-high-bg);
+  border-color: var(--color-neutral-strong);
+}
+
+.analysis-section.severity-neutral-medium {
+  background: var(--neutral-medium-bg);
+  border-color: var(--color-neutral-medium);
+}
+
+.analysis-section.severity-neutral-low {
+  background: var(--neutral-low-bg);
+  border-color: var(--color-neutral-light);
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .analysis-section {
+    background: color-mix(in srgb, var(--bg-primary) 95%, var(--text-primary));
+  }
+  
+  .analysis-section.severity-high {
+    background: color-mix(in srgb, var(--risk-high-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-medium {
+    background: color-mix(in srgb, var(--risk-medium-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-low {
+    background: color-mix(in srgb, var(--risk-low-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-neutral-high {
+    background: color-mix(in srgb, var(--neutral-high-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-neutral-medium {
+    background: color-mix(in srgb, var(--neutral-medium-bg) 85%, var(--bg-primary));
+  }
+  
+  .analysis-section.severity-neutral-low {
+    background: color-mix(in srgb, var(--neutral-low-bg) 85%, var(--bg-primary));
+  }
+}
+
+.analysis-section h2 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.analysis-section h3 {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.result span {
+  margin: 0;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Violation Items */
+.violation-item {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.violation-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
 }
 
-.phishing-rule-name {
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.phishing-severity-badge {
+.violation-header span {
   font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 3px;
+  font-weight: 600;
+}
+
+.violation-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.violation-severity {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-weight: 500;
-  text-transform: uppercase;
 }
 
-.severity-high {
-  background-color: #fde8e8;
-  color: #e53e3e;
-}
-
-.severity-medium {
-  background-color: #fef3c7;
-  color: #d97706;
-}
-
-.severity-low {
-  background-color: #def7ec;
-  color: #057a55;
-}
-
-.phishing-rule-description {
-  color: #495057;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.phishing-summary {
-  color: #2c3e50;
+.violation-description {
+  color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.5;
-  margin-bottom: 24px;
-  background-color: #f8f9fa;
-  padding: 12px;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
+  margin: 0;
 }
 
-.phishing-summary p {
-  margin: 0 0 8px 0;
-}
-
-.phishing-summary p:last-child {
-  margin-bottom: 0;
-}
-
-.phishing-summary strong {
-  color: #e53e3e;
-  font-weight: 600;
-}
-
-.phishing-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #dee2e6;
-}
-
-.phishing-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 3px;
+/* Recommendation Text */
+.recommendation-text {
+  color: var(--text-secondary);
   font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-}
-
-.phishing-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
-}
-
-.phishing-btn-back {
-  background-color: #e53e3e;
-  color: white;
-}
-
-.phishing-btn-back:hover {
-  background-color: #c53030;
-}
-
-.phishing-btn-proceed {
-  background-color: transparent;
-  color: #6c757d;
-  border: 1px solid #6c757d;
-}
-
-.phishing-btn-proceed:hover {
-  background-color: #f1f3f5;
-  border-color: #495057;
-}
-
-@media (max-width: 480px) {
-  .phishing-alert-container {
-    max-width: 95%;
-    margin: 10px;
-  }
-
-  .phishing-risk-section {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .phishing-actions {
-    flex-direction: column;
-  }
-
-  .phishing-btn {
-    width: 100%;
-  }
-}
-
-.ugc-threat-icon {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #2c3e50;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  padding: 4px;
-  transform-origin: center;
-  transition: transform 0.2s ease;
-  pointer-events: auto;
-}
-
-.ugc-threat-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.ugc-threat-icon:hover {
-  transform: scale(1.1);
-}
-
-/* Color variations based on severity */
-.ugc-threat-icon.severity-high {
-  background: #dc2626;
-}
-
-.ugc-threat-icon.severity-medium {
-  background: #ea580c;
-}
-
-.ugc-threat-icon.severity-low {
-  background: #2c3e50;
-}
-
-/* Add new style for highlighted elements */
-[data-ai-sentinel-highlight="true"] {
-  position: relative !important;
-  display: inline-block;
-  padding-right: 16px;
+  line-height: 1.5;
+  margin: 0;
 }

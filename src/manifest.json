@@ -1,18 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Shield",
+  "name": "BrowserSentinel",
   "version": "1.0.0",
-  "description": "AI-powered extension that alerts you to online threats while ensuring your privacy.",
-  "action": {
-    "default_popup": "src/popup/index.html"
+  "description": "Privacy-first Chrome extension leveraging on-device AI to analyze online activities and safeguard users against potential threats.",
+  "icons": {
+    "16": "icons/16/BrowserSentinel-default.png",
+    "32": "icons/32/BrowserSentinel-default.png",
+    "48": "icons/48/BrowserSentinel-default.png",
+    "128": "icons/128/BrowserSentinel-default.png"
   },
-  "permissions": [
-    "storage", 
-    "contextMenus", 
-    "activeTab",
-    "scripting",
-    "offscreen"
-  ],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/16/BrowserSentinel-default.png",
+      "32": "icons/32/BrowserSentinel-default.png",
+      "48": "icons/48/BrowserSentinel-default.png",
+      "128": "icons/128/BrowserSentinel-default.png"
+    }
+  },
+  "permissions": ["storage", "contextMenus", "activeTab", "scripting", "offscreen"],
   "background": {
     "service_worker": "src/background.ts"
   },
@@ -33,6 +39,10 @@
     {
       "resources": ["*.map"],
       "matches": ["https://mail.google.com/*"]
+    },
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
     }
   ]
 }
