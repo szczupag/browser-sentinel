@@ -15,7 +15,7 @@ const languagePair = {
   try {
     // @ts-ignore
     const translationStatus = await translation.canTranslate(languagePair);
-    console.info('Translation status:', translationStatus);
+    console.info('Translation status:', translationStatus, languagePair);
 
     if (translationStatus === 'no') {
       console.error('Translation not available');
@@ -32,12 +32,6 @@ const languagePair = {
     if (translationStatus === 'readily') {
       await initializeTranslator();
     } else if (translationStatus === 'after-download') {
-      const trackDownloadProgress = (event: {loaded: number, total: number}) => {
-        console.info(`Download progress: ${event.loaded}/${event.total}`);
-      };
-
-      translator.addEventListener('downloadprogress', trackDownloadProgress);
-      await translator.ready;
       await initializeTranslator();
     }
   } catch (error) {
