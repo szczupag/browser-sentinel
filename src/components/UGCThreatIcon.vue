@@ -2,7 +2,7 @@
   <button
     class="threat-icon"
     :class="severityClass"
-    @click="showAlert"
+    @click.stop="showAlert"
     :aria-label="`Show ${severity.toLowerCase()} risk warning`"
   >
     <svg

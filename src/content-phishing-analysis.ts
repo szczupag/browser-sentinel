@@ -13,9 +13,10 @@ import UGCThreatIcon from './components/UGCThreatIcon.vue'
 import type { DomainAnalysis, ContentAnalysis } from './store'
 import { AnalysisStatus } from './constants/analysisStatus'
 import { RiskLevel } from './constants/riskLevels'
+import { createSocialAnalyzer } from './social-analyzers/analyzer-creator';
 
-const UGC_ANALYSIS_PROMPT = `
-You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.
+const PRE_UGC_ANALYSIS_PROMPT = `You are a security expert analyzing content for potential threats. Your first task is to determine if the content is user-generated (UGC), then analyze any UGC for security concerns.`;
+export const UGC_ANALYSIS_PROMPT = `
 
 STEP 1 - UGC IDENTIFICATION:
 User-generated content typically includes:
@@ -168,7 +169,7 @@ Output: {
 
 Your response must be valid JSON that can be parsed by JSON.parse(). Ensure proper escaping of any characters within string fields. No additional text or formatting allowed.`
 
-type PhishingAnalysis = {
+export type PhishingAnalysis = {
   title: string
   violations: {
     rule: string
@@ -217,7 +218,7 @@ function showUGCThreatAlert(analysis: PhishingAnalysis) {
   document.body.appendChild(shadowHost)
 }
 
-function showUGCThreatIcon(wrapper: HTMLElement, severity: RiskLevel, analysis: any) {
+export function showUGCThreatIcon(wrapper: HTMLElement, severity: RiskLevel, analysis: any) {
   const shadowHost = document.createElement('div')
   shadowHost.setAttribute('id', 'ugc-threat-icon-shadow-host')
   shadowHost.style.all = 'unset'
@@ -239,11 +240,11 @@ function showUGCThreatIcon(wrapper: HTMLElement, severity: RiskLevel, analysis: 
 }
 
 // Add this function at the top level
-function setupUGCAlertListener() {
-  // Remove existing listener if any
+export function setupUGCAlertListener() {
+  // @ts-ignore Remove existing listener if any
   document.removeEventListener('show-ugc-alert', handleUGCAlert)
 
-  // Add new listener
+  //@ts-ignoreAdd new listener
   document.addEventListener('show-ugc-alert', handleUGCAlert)
 }
 
@@ -336,7 +337,7 @@ async function handleUGCDetection(event: CustomEvent) {
   const session = await window.ai.languageModel.create({
     topK: 1,
     temperature: 0.1,
-    systemPrompt: UGC_ANALYSIS_PROMPT,
+    systemPrompt: PRE_UGC_ANALYSIS_PROMPT + UGC_ANALYSIS_PROMPT,
   })
 
   try {
@@ -375,7 +376,16 @@ async function shouldHighlightUGC(): Promise<boolean> {
 
 // Main execution
 ;(async () => {
-  const domain = location.hostname
+  const domain = location.hostname.replace(/^www\./, '');
+  
+
+  const analyzer = createSocialAnalyzer(domain)
+  if (analyzer) {
+    console.log('Social content analyzer initialized');
+    analyzer.initialize();
+    return;
+  }
+
   sendAnalysisToBackground({ status: AnalysisStatus.STARTING_DOMAIN_ANALYSIS })
   console.log('Analyzing domain...')
   const analysisResult = analyzeDomain(domain, [...finance, ...ecommerce, ...news])
@@ -451,7 +461,7 @@ ${extractWebsiteInfo(document)}
     // Set up UGC alert listener
     setupUGCAlertListener()
 
-    // Set up UGC detection with event handler
+    //@ts-ignore Set up UGC detection with event handler
     document.addEventListener('ugc-detected', handleUGCDetection)
 
     // Start UGC detection
@@ -460,6 +470,7 @@ ${extractWebsiteInfo(document)}
     // Clean up when extension is disabled or page is unloaded
     window.addEventListener('unload', () => {
       cleanup()
+      //@ts-ignore Remove UGC detection event listener
       document.removeEventListener('ugc-detected', handleUGCDetection)
     })
   }

@@ -27,7 +27,8 @@
     {
       "matches": ["<all_urls>"],
       "exclude_matches": ["https://*.google.com/*"],
-      "js": ["src/content-phishing-analysis.ts"]
+      "js": ["src/content-phishing-analysis.ts"],
+      "run_at": "document_end"
     },
     {
       "matches": ["https://mail.google.com/*"],
