@@ -78,7 +78,8 @@
             <input
               id="display-warnings-setting"
               type="checkbox"
-              v-model="store.displaySuspiciousDomainAlerts"
+              :checked="store.displaySuspiciousDomainAlerts"
+              @change="store.toggleSuspiciousDomainAlerts()"
             />
             <span class="toggle-slider"></span>
           </label>
@@ -94,7 +95,8 @@
             <input
               id="highlight-ugc-setting"
               type="checkbox"
-              v-model="store.highlightSuspiciousUGC"
+              :checked="store.highlightSuspiciousUGC"
+              @change="store.toggleSuspiciousUGC()"
             />
             <span class="toggle-slider"></span>
           </label>
@@ -110,7 +112,8 @@
             <input
               id="highlight-email-setting"
               type="checkbox"
-              v-model="store.highlightSuspiciousEmailContent"
+              :checked="store.highlightSuspiciousEmailContent"
+              @change="store.toggleSuspiciousEmailContent()"
             />
             <span class="toggle-slider"></span>
           </label>
@@ -127,7 +130,6 @@ import { AnalysisStatus } from '../constants/analysisStatus'
 
 const store = useMainStore()
 
-// Move initialization to onMounted
 onMounted(async () => {
   try {
     await store.initialize()

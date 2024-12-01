@@ -300,9 +300,14 @@ async function analyzeUGCElements(elements: any[], session: any) {
           allThreats.overallConfidence = RiskLevel.MEDIUM
         }
 
-        highlightUGCThreats(ugc.container, analysis.overallRiskScore)
-        showUGCThreatIcon(ugc.container, analysis.overallRiskScore, analysis)
-        ugc.container.dataset.ugcAnalysis = JSON.stringify(analysis)
+        const shouldHighlight = await shouldHighlightUGC()
+        if (shouldHighlight) {
+          highlightUGCThreats(ugc.container, analysis.overallRiskScore)
+          showUGCThreatIcon(ugc.container, analysis.overallRiskScore, analysis)
+          ugc.container.dataset.ugcAnalysis = JSON.stringify(analysis)
+        } else {
+          console.log('UGC highlighting disabled by user preferences')
+        }
       }
     } catch (e) {
       console.error('Error analyzing UGC element:', e)
@@ -356,6 +361,16 @@ function sendAnalysisToBackground(analysis: {
   }
   console.log('Sending message to background:', message)
   chrome.runtime.sendMessage(message)
+}
+
+async function shouldShowPhishingAlert(): Promise<boolean> {
+  const data = await chrome.storage.local.get('displaySuspiciousDomainAlerts')
+  return data?.displaySuspiciousDomainAlerts ?? true // Default to true if not set
+}
+
+async function shouldHighlightUGC(): Promise<boolean> {
+  const data = await chrome.storage.local.get('highlightSuspiciousUGC')
+  return data?.highlightSuspiciousUGC ?? true // Default to true if not set
 }
 
 // Main execution
@@ -418,8 +433,13 @@ ${extractWebsiteInfo(document)}
 
     if (phishingAnalysis?.isSafe === false) {
       console.log('Website content is not safe.')
-      phishingAnalysis.title = 'Security Warning'
-      await showPhishingAlert(phishingAnalysis)
+      const shouldShow = await shouldShowPhishingAlert()
+      if (shouldShow) {
+        phishingAnalysis.title = 'Security Warning'
+        await showPhishingAlert(phishingAnalysis)
+      } else {
+        console.log('Phishing alert suppressed due to user preferences')
+      }
     } else if (phishingAnalysis?.isSafe === true) {
       console.log('Website content is safe.')
     }
