@@ -110,7 +110,11 @@ This controlled environment lets us test detection capabilities without accessin
 
 - Node.js (v20.12.2 or later)
 - npm (v10.5.0 or later)
-- Chrome (v128.0.0 or later)
+- Chrome (v133.0.0 or later with built-in AI support enabled)
+  - Enabled built-in AI features:
+    - Prompt API (required)
+    - Translation API (optional for UI localization)
+  - For detailed setup instructions and availability, check the [Chrome Built-in AI documentation](https://developer.chrome.com/docs/ai/built-in)
 
 ### Installation
 
