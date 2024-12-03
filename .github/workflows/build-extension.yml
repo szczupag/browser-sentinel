@@ -26,11 +26,11 @@ jobs:
         run: npm run build
 
       - name: Zip extension
-        run: zip -r shield-extension.zip dist
+        run: zip -r browser-sentinel-extension.zip dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: shield-extension
-          path: shield-extension.zip
+          name: browser-sentinel-extension
+          path: browser-sentinel-extension.zip
           if-no-files-found: error
